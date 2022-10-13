@@ -1,0 +1,847 @@
+<apex:page showHeader="true" sidebar="true" standardController="Port_Request__c" extensions="PITExt" id="wholepage" docType="html-5.0" action="{!init}">
+<apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"/>
+<script type="text/javascript">
+    $j = jQuery.noConflict();
+
+    function scrollToBerth() {
+        location.hash = '#describeberth';
+    }
+    function selTerminalCtrl(term) {
+        if (term.hasClass('sel')) {
+            term.removeClass('sel');
+            var rowid = term.find('input.tid').val();
+            doUnselTerminal(rowid);
+        } else {
+            term.addClass('sel');
+            var rowid = term.find('input.tid').val();
+            doSelTerminalCtrl(rowid);
+        }
+    }
+    function selTerminal(term) {
+        if (term.hasClass('sel')) {
+            term.removeClass('sel');
+            var rowid = term.find('input.tid').val();
+            doUnselTerminal(rowid);
+        } else {
+            $j('table.terminaltable tr.dataRow').removeClass('sel');
+            term.addClass('sel');
+            var rowid = term.find('input.tid').val();
+            doSelTerminal(rowid);
+        }
+        
+    }
+    function selBerth(berth) {
+        $j('table.berthtable tr.dataRow').removeClass('sel');
+        berth.addClass('sel');
+        var rowid = berth.find('input.bid').val();
+        doSelBerth(rowid)
+    }
+
+    function selCargoType(cargotype) {
+        $j('table.cargotypetable tr.dataRow').removeClass('sel');
+        cargotype.addClass('sel');
+        var rowid = cargotype.find('input.ctid').val();
+        doSelCargoType(rowid);
+    }
+    function showNewBerth() {
+        $j('#berthadder').show();
+        doShowNewBerth();
+    }
+    function showNewCT() {
+        $j('#ctadder').show();
+        doShowNewCT();
+    }
+    function hideNewBerth() {
+        $j('#berthadder').hide();
+    }
+    function hideNewCT() {
+        $j('#ctadder').hide();
+    }
+    function showBerthAssignment(){
+        $j('#berthAssignment').show();
+        doAssignBerth();
+    }
+    function hideBerthAssignment(){
+        $j('#berthAssignment').hide();
+    }
+    var timerId;
+    function portSearch() {
+        clearTimeout(timerId);
+        timerId = setTimeout(doPortSearch(), 200);
+        
+    }
+    function portSearchSelect(portId) {
+        if (portId != '-') {
+            doPortSearchSelect(portId);
+        }
+    }
+    function deleteChannel(chId) {
+        if (confirm('Do you really want to delete this channel?')) {
+            doDeleteChannel(chId);
+        }
+    }
+    function deleteBerthTerm(btId) {
+        if (confirm('Remove this berth\'s connection to terminal?' )) {
+            doDeleteBerthTerm(btId);
+        }
+    }
+    function deleteTerminal(tId) {
+        if (confirm('Do you really want to delete this terminal?')) {
+            doDeleteTerminal(tId);
+        }
+    }
+
+</script>
+<style type="text/css">
+/*
+    span.portselector .pbSubsection {
+        width: 50%;
+        float: left;
+    }
+    div#portsearcher {
+        width: 50%;
+        float: left;
+    }
+
+    div[id*=portsection] {
+        height: 350px;
+    }
+    */
+    div.searchRes:hover {
+        background-color: #999;
+    }
+    div.searchRes.sel {
+        background-color: #bbb;
+    }
+    div.searchRes {
+        cursor: pointer;
+        padding: 2px 6px;
+    }
+    span.portSearchResultsOuter {
+        margin-left: 18%;
+        padding-left: 10px; /* these two to simulate Salesforce forms */
+        display: block;
+    }
+    span.portSearchResults {
+        background-color: white;
+        display: block;
+        border: solid 1px #444;
+        overflow-x: hidden;
+        overflow-y: auto;
+        height: 14em;
+    }
+    table.list tr.sel {
+        background-color: #ddffaa;
+    }
+    span.berthfilters {
+        display: table-cell;
+        padding: 1em 0.2em 1em 0.2em;
+        margin: 0.2em;
+        width: 100%;
+    }
+    label.filtertitle {
+        display: block;
+        font-weight: bolder;
+        margin-bottom: 0.2em;
+        font-size: 90%;
+    }
+    .filterSel {
+        width: 15em;
+        margin-right: 1em;
+    }
+    label.filtertitle.disabled {
+        color: gray;
+    }
+    div.filter {
+        float: left;
+        margin-right: 2em;
+    }
+    div.filter select {
+        width: 10em;
+    }
+    div#portDetails {
+    }
+    div#portDetails div.details {
+        width: 50%;
+        float: left;
+    }
+    div#portDetails div.portMap {
+        width: 50%;
+        height: 310px;
+        float: left;
+    }
+    div.mapbuttons {
+        width: 100%;
+    }
+    div.mapbuttons input {
+        height: 1.85em;
+    }
+    textarea.berthinput {
+        width: 70%;
+        height: 6em;
+    }
+    textarea.reqdescription {
+        width: 70%;
+        height: 6em;
+    }
+    div.chatterDiv {
+        margin-bottom: 0.8em;
+    }
+    span.PortPanel {
+        min-height: 654px;
+        display: block;
+    }
+
+    div#ctadder,
+    div#berthadder {
+        display: none;
+        position: absolute;
+        width: 120%;
+        height: 100%;
+        top: 0px;
+        left: -10px;
+        background-color: rgba(0,0,0,0.8);
+    }
+    div#ctadder div.apexp,
+    div#berthadder div.apexp {
+        position: fixed;
+        width: 80%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    div#berthAssignment {
+        display: none;
+        position: absolute;
+        width: 120%;
+        height: 100%;
+        top: 0px;
+        left: -10px;
+        background-color: rgba(0,0,0,0.8);
+        overflow-y: scroll;
+    }
+    div.berthScroll {
+        height: 450px;
+        overflow-y: scroll;
+    }
+    div#berthAssignment div.apexp {
+        position: fixed;
+        width: 80%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        height: 506px;
+    }
+    div.waiting {
+        position: absolute;
+        display: none;
+        width: 100%;
+        height: 100%;
+        top: 0px;
+        left: 0px;
+        background-color: rgba(0,0,0,0.8);
+        z-index: 8;
+     }
+    img.waitingGif {
+        position: absolute;
+        width: 160px;
+        height: 160px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-80px, -80px);
+    }
+</style>
+<apex:sectionHeader title="Port Information Request - status: {!selPortReq.Status__c}"/>
+<div class="chatterDiv">
+    <chatter:feedWithFollowers entityId="{!Id}"/>        
+</div>
+<div class="waiting">
+    <img src="{!$Resource.waiting}" class="waitingGif"/>
+</div>
+<apex:form id="theForm">
+    <apex:actionFunction name="doPortSearch" reRender="portSearchResults"/>
+    <apex:actionFunction name="doPortSearchSelect" action="{!portSearchSelect}" reRender="portselector,locDetails">
+        <apex:param name="portId" value="" assignTo="{!portSearchSelectId}"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="doSelTerminal" action="{!selTerminal}" reRender="berthblock,berthbuttons" oncomplete="$j('div.waiting').fadeOut(200);">
+        <apex:param name="actTermId" value="" assignTo="{!actTermId}"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="doSelTerminalCtrl" action="{!selTerminal}" reRender="berthblock,berthbuttons" oncomplete="$j('div.waiting').fadeOut(200);">
+        <apex:param name="actTermId" value="" assignTo="{!actTermId}"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="doClearSelTerminal" action="{!clearSelTerminal}" reRender="none"/>
+    <apex:actionFunction name="doUnselTerminal" action="{!unselTerminal}" reRender="berthblock,berthbuttons" oncomplete="$j('div.waiting').fadeOut(200);">
+        <apex:param name="actTermId" value="" assignTo="{!actTermId}"/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="justRefreshBerths" reRender="berthblock" />
+    <apex:actionFunction name="justRefreshCTs" reRender="berthcargotypes"/>
+
+    <apex:actionFunction name="doSelBerth" action="{!selBerth}" reRender="berthinfo">
+        <apex:param name="actBerthId" value="" assignTo="{!actBerthId}"/>
+    </apex:actionFunction>
+    
+    <apex:actionFunction name="doSelCargoType" action="{!selCargoType}" reRender="cargotypeinfo">
+        <apex:param name="actCargoTypeId" value="" assignTo="{!actCargoTypeId}"/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="doEditChannel" action="{!editChannel}" reRender="channelblock,channeledit">
+        <apex:param name="actChanId" value="" assignTo="{!actChanId}"/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="doDeleteChannel" action="{!deleteChannel}" reRender="channelblock,messages">
+        <apex:param name="actChanId" value="" assignTo="{!actChanId}"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="doStopEditChannel" action="{!stopEditChannel}" reRender="channelblock,channeledit"/>
+
+    <apex:actionFunction name="doAddChannel" action="{!addChannel}" reRender="channelblock,channeledit"/>
+
+    <apex:actionFunction name="doEditTerminal" action="{!editTerminal}" reRender="preTerminalBlock">
+        <apex:param name="termEditId" value="" assignTo="{!termEditId}"/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="doCloneBerth" action="{!berthClone}" reRender="berthlisting">
+        <apex:param name="selectedBertId" value="" assignTo="{!selectedBertId}"/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="doDoneEditTerminal" action="{!doneEditTerminal}" reRender="preTerminalBlock"/>
+
+    <apex:actionFunction name="doDeleteTerminal" action="{!deleteTerminal}" reRender="theForm" oncomplete="window.location.href='/apex/PIT?id={!selPortReq.Id}'">
+        <apex:param name="termEditId" value="" assignTo="{!termEditId}"/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="doAddTerminal" action="{!addTerminal}" reRender="preTerminalBlock"/>
+
+    <apex:actionFunction name="doDeleteBerthTerm" action="{!deleteBerthTerm}" reRender="berthterminals,messages">
+        <apex:param name="berthTermDeleteId" value="" assignTo="{!berthTermDeleteId}"/>
+    </apex:actionFunction>
+
+    <apex:actionFunction name="doShowNewBerth" action="{!showNewBerth}" reRender="berthadder"/>
+    <apex:actionFunction name="doAssignBerth" action="{!AssignBerth}" reRender="berthAssignment"/>
+    <apex:actionFunction name="doShowNewCT" action="{!showNewCT}" reRender="ctadder"/>
+    <apex:pageBlock title="Port Request: {!selPortReq.Name}" id="portrequest" rendered="{!!dummyPortRequest}">
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!submitToPortResponsible}" value="Submit request to Port Responsible" rendered="{!(selPortReq.Status__c == 'Draft' || selPortReq.Status__c == 'Answered') && (hasPort || hasLocation )}"/>
+            <apex:commandButton action="{!updatePortRequest}" value="Save" rendered="{!(selPortReq.Status__c == 'Submitted') && portChanged}"/>
+            <apex:commandButton value="Preview" onclick="window.open('apex/GenerateCaseResponsePDF?Id={!selPortReq.id}', '_blank');"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="Port Request Details" columns="2">
+            <apex:outputField value="{!selPortReq.Status__c}"/> <apex:outputField value="{!selPortReq.OwnerId}"/>
+            <apex:outputText />                                  <apex:outputField value="{!selPortReq.Submitted_By__r.Name}" label="Submitted by"/>
+            <apex:inputField value="{!selPortReq.Description__c}" styleClass="reqdescription"/>
+            <apex:outputField value="{!selPortReq.Submitted_By__r.Email}" label="Email"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Case Details" columns="2">
+            <apex:outputField value="{!selPortReq.Case__c}"/>
+            <apex:outputField value="{!selPortReq.Case__r.Status}"/>
+            <apex:outputField value="{!selPortReq.Case__r.Subject}"/>
+            <apex:outputField value="{!selPortReq.Case__r.Description}"/>
+            <apex:outputField value="{!selPortReq.Case__r.Vessel__c}"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:pageBlock title="Port" id="portsection">
+    <apex:pageBlockButtons >
+        <apex:commandButton value="Show my ports" action="{!showMyPorts}" rendered="{!!showMyPorts}" reRender="portsection"/>
+        <apex:commandButton value="Show Recent Ports" action="{!showRecentPorts}" rendered="{!!showRecentPorts}" reRender="portsection"/>
+        <apex:commandButton value="Search for ports" action="{!hideMyPorts}" rendered="{!showMyPorts || showRecentPorts}" reRender="portsection"/>
+    </apex:pageBlockButtons>
+    <apex:outputPanel id="messages">
+        <apex:messages />
+    </apex:outputPanel>
+        <apex:outputPanel title="Port details" rendered="{!hasPort}" styleClass="PortPanel">
+            <div id="portDetails">
+                <p>Selected port: <b>{!selPort.Name} ({!selPort.Port_Code__c})</b></p>
+                <apex:commandButton value="Change Port" action="{!changePort}" id="changePortButton" rendered="{!!portedit}"/>
+                <apex:commandButton value="Edit" action="{!editPort}" rendered="{!!portedit}" reRender="portsection"/>
+                <apex:commandButton value="Save" action="{!savePort}" rendered="{!portedit}" reRender="portsection"/>
+                <apex:commandButton value="Cancel" action="{!cancelPort}" rendered="{!portedit}" reRender="portsection"/>
+            </div>
+            <div id="portDetails">
+                <div class="details">
+                <apex:outputPanel layout="block" rendered="{!!portedit}">
+                <apex:pageBlockSection title="Port" collapsible="false">
+                    <apex:outputField value="{!selPort.Name}"/>
+                    <apex:outputField value="{!selPort.OwnerId}"/>
+                    <apex:outputField value="{!selPort.Other_names__c}"/>
+                    <apex:outputField value="{!selPort.Location__c}"/>
+                    <apex:outputField value="{!selPort.LastModifiedDate}"/>                   
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Wilhelmsen Ship Services Contact" collapsible="false">
+                    <apex:outputField value="{!selPort.Name__c}"/>
+                    <apex:outputField value="{!selPort.Email__c}"/>
+                    <apex:outputField value="{!selPort.Phone__c}"/>                
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Information" collapsible="true">
+                    <apex:outputField value="{!selPort.Port_Code__c}"/><br/>
+                    <apex:outputField value="{!selPort.Port_Name_local__c}"/>
+                    <apex:outputField value="{!selPort.Local_Currency_formula__c}"/>
+                    <apex:outputField value="{!selPort.Country_Code_ISO_formula__c}"/>
+                    <apex:outputField value="{!selPort.Official_Website__c}"/>
+                    <apex:outputField value="{!selPort.State__c}"/>
+                    <apex:outputField value="{!selPort.Time_Zone__c}"/>
+                    <apex:outputField value="{!selPort.Name_of_nearest_Domestic_Airport__c}"/>
+                    <apex:outputField value="{!selPort.Name_of_nearest_International_Airport__c}"/>
+                    <apex:outputField value="{!selPort.Code_of_nearest_Domestic_Airport__c}"/>
+                    <apex:outputField value="{!selPort.Code_of_nearest_International_Airport__c}"/>
+                    <apex:outputField value="{!selPort.Nearest_Domestic_Airport_km__c}"/>
+                    <apex:outputField value="{!selPort.Nearest_International_Airport_km__c}"/>     
+                </apex:pageBlockSection>
+                    <apex:pageBlockSection title="Port Administration" collapsible="true">
+                    <apex:outputField value="{!selPort.Port_Administration_WH_weekdays__c}"/>
+                    <apex:outputField value="{!selPort.Port_Administration_WH_holidays__c}"/>
+                    <apex:outputField value="{!selPort.Port_Administration_WH_weekends__c}"/>
+                    <apex:outputField value="{!selPort.Public_Holidays__c}"/>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Details" collapsible="true">
+                    <apex:outputField value="{!selPort.Location_Description__c}"/>
+                    <apex:outputField value="{!selPort.Tugs_availble__c}"/>
+                    <apex:outputField value="{!selPort.Tidal_Restriction__c}"/>
+                    <apex:outputField value="{!selPort.Tugs_required__c}"/>
+                    <apex:outputField value="{!selPort.Salinity_range__c}"/>
+                    <apex:outputField value="{!selPort.Daylight_Restriction__c}"/>
+                    <apex:outputField value="{!selPort.Pilot_Escort__c}"/>
+                    <apex:outputField value="{!selPort.Repairs__c}"/>
+                    <apex:outputField value="{!selPort.Officials_Visitors__c}"/>
+                    <apex:outputField value="{!selPort.Medical_Facilities__c}"/>
+                    <apex:outputField value="{!selPort.Crew_Change__c}"/>
+                    <apex:outputField value="{!selPort.Sludge__c}"/>
+                    <apex:outputField value="{!selPort.Transport_Inland__c}"/>
+                </apex:pageBlockSection>
+                </apex:outputPanel>
+                <apex:outputPanel layout="block" rendered="{!portedit}">
+                <apex:pageBlockSection title="Port" collapsible="false">
+                    <apex:inputField value="{!editingPort.Name}"/>
+                    <apex:inputField value="{!editingPort.OwnerId}"/>
+                    <apex:inputField value="{!editingPort.Other_names__c}"/>
+                    <apex:inputField value="{!editingPort.Location__c}"/>
+                    <apex:inputField value="{!editingPort.LastModifiedDate}"/> 
+                    <apex:inputField value="{!editingPort.Latitude_Longitude__Latitude__s}"/>                 
+                    <apex:inputField value="{!editingPort.Latitude_Longitude__Longitude__s}"/>                 
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Wilhelmsen Ship Services Contact" collapsible="false">
+                    <apex:inputField value="{!selPort.Name__c}"/>
+                    <apex:inputField value="{!selPort.Email__c}"/>
+                    <apex:inputField value="{!selPort.Phone__c}"/>                
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Information" collapsible="true">
+                    <apex:inputField value="{!editingPort.Port_Name_local__c}"/>
+                    <apex:inputField value="{!editingPort.Official_Website__c}"/>
+                    <apex:inputField value="{!editingPort.State__c}"/>
+                    <apex:inputField value="{!editingPort.Time_Zone__c}"/>
+                    <apex:inputField value="{!editingPort.Name_of_nearest_Domestic_Airport__c}"/>
+                    <apex:inputField value="{!editingPort.Name_of_nearest_International_Airport__c}"/>
+                    <apex:inputField value="{!editingPort.Code_of_nearest_Domestic_Airport__c}"/>
+                    <apex:inputField value="{!editingPort.Code_of_nearest_International_Airport__c}"/>
+                    <apex:inputField value="{!editingPort.Nearest_Domestic_Airport_km__c}"/>
+                    <apex:inputField value="{!editingPort.Nearest_International_Airport_km__c}"/>     
+                </apex:pageBlockSection>
+                    <apex:pageBlockSection title="Port Administration" collapsible="true">
+                    <apex:inputField value="{!editingPort.Port_Administration_WH_holidays__c}"/>
+                    <apex:inputField value="{!editingPort.Port_Administration_WH_weekdays__c}"/>
+                    <apex:inputField value="{!editingPort.Port_Administration_WH_weekends__c}"/>
+                    <apex:inputField value="{!editingPort.Public_Holidays__c}"/>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Details" collapsible="true">
+                    <apex:inputField value="{!editingPort.Location_Description__c}"/>
+                    <apex:inputField value="{!editingPort.Tugs_availble__c}"/>
+                    <apex:inputField value="{!editingPort.Tidal_Restriction__c}"/>
+                    <apex:inputField value="{!editingPort.Tugs_required__c}"/>
+                    <apex:inputField value="{!editingPort.Salinity_range__c}"/>
+                    <apex:inputField value="{!editingPort.Daylight_Restriction__c}"/>
+                    <apex:inputField value="{!editingPort.Pilot_Escort__c}"/>
+                    <apex:inputField value="{!editingPort.Repairs__c}"/>
+                    <apex:inputField value="{!editingPort.Officials_Visitors__c}"/>
+                    <apex:inputField value="{!editingPort.Medical_Facilities__c}"/>
+                    <apex:inputField value="{!editingPort.Crew_Change__c}"/>
+                    <apex:inputField value="{!editingPort.Sludge__c}"/>
+                    <apex:inputField value="{!editingPort.Transport_Inland__c}"/>
+                </apex:pageBlockSection>
+                </apex:outputPanel>
+
+                </div>
+                <apex:outputPanel id="portMap" styleClass="portMap" layout="block">
+                    <div class="mapbuttons tertiaryPalette">
+                        <apex:commandButton value="Zoom in" action="{!zoomIn}" rerender="portMap" rendered="{!zoomLevel <= 3}"/>
+                        <apex:commandButton value="Zoom out" action="{!zoomOut}" rerender="portMap" rendered="{!zoomLevel > 3}"/>
+                    </div>
+                    <apex:map width="100%" height="100%" mapType="{!mapType}" center="{!portLocMap}" rendered="{!portLocMap != null}" zoomLevel="{!zoomLevel}" id="map">
+                        <apex:mapmarker title="{!selPort.Name}" icon="{!URLFOR($Resource.portimg)}" position="{!portLocMap}"/>
+                    </apex:map>
+                </apex:outputPanel>
+            </div>
+        </apex:outputPanel>
+        <apex:outputPanel title="Location details" rendered="{!hasLocation}" id="locDetails">
+            <apex:pageBlockSection title="Location information" columns="1">
+                <apex:outputField value="{!selLocation.Type__c}"/>
+                <apex:outputField value="{!selLocation.Name}"/>
+                <apex:outputField value="{!selLocation.isocode__c}"/>
+            </apex:pageBlockSection>
+        </apex:outputPanel>
+        <apex:outputPanel title="Port details" rendered="{!hasPort == false || (hasLocation == true && selPortReq.Status__c != 'Draft')}" styleClass="portselector" id="portselector">
+        <apex:pageBlockSection title="Select Region, Country and Port" collapsible="false" columns="2">
+            <apex:pageBlockSectionItem rendered="{!!showMyPorts && !showRecentPorts}">
+                <label>Global Region:</label>
+                <apex:outputPanel >
+                <apex:selectList size="1" value="{!selRegion}" styleClass="filterSel">
+                    <apex:selectOptions value="{!regions}"/>
+                    <apex:actionSupport reRender="countryOpts,portOpts" event="onchange" action="{!regionChanged}"/>
+                </apex:selectList>
+                <apex:commandButton value="Select Region" action="{!selectRegion}" id="selRegionButton"/>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem rendered="{!!showMyPorts && !showRecentPorts}">
+                    <apex:outputLabel value="Search"/>
+                    <apex:outputPanel >
+                        <div id="portsearcher">
+                            <apex:inputText value="{!portSearch}" onkeyup="portSearch();"/>
+                        </div>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!!showMyPorts && !showRecentPorts}">
+                <label>Country:</label>
+                <apex:outputPanel >
+                <apex:selectList size="1" id="countryOpts" value="{!selCountry}" styleClass="filterSel">
+                    <apex:selectOptions value="{!countryOpts}"/>
+                    <apex:actionSupport reRender="portOpts" event="onchange" action="{!countryChanged}"/>
+                </apex:selectList>
+                <apex:commandButton value="Select Country" action="{!selectCountry}" id="selCountryButton"/>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!!showMyPorts && !showRecentPorts}">
+                <apex:outputLabel value=""/>
+                <apex:outputText value=""/>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <label>Found ports</label>
+                <apex:outputPanel >
+                <apex:selectList size="10" id="portOpts" value="{!selPortCode}" styleClass="filterSel">
+                    <apex:selectOptions value="{!portOpts}"/>
+                </apex:selectList>
+                <apex:commandButton value="Select Port" action="{!selectPort}" id="selPortButton"/>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!!showMyPorts && !showRecentPorts}">
+                <apex:outputPanel styleClass="portSearchResultsOuter">
+                <b>Search results</b>
+                <apex:outputPanel id="portSearchResults" styleClass="portSearchResults">
+                    <apex:repeat value="{!searchResults}" var="sId">
+                        <div id="{!sId}" onclick="portSearchSelect(this.id);" class="searchRes {!IF(sId==portSearchSelectId,'sel','unsel')}">{!searchResults[sId]}</div>
+                    </apex:repeat>
+                </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            
+<!-- WE DIDN'T GO FOR DISTRICTS         
+            <div class="filteroption">
+                <label>District:</label>
+                <apex:selectList size="1" id="districtOpts" value="{!selDistrict}">
+                    <apex:selectOptions value="{!districtOpts}"/>
+                </apex:selectList>
+            </div>
+            --> 
+        </apex:pageBlockSection>
+        </apex:outputPanel>
+    </apex:pageBlock>
+    <apex:pageBlock title="Approach Channel" rendered="{!hasPort && !showChanEdit}" id="channelblock">
+        <apex:pageBlockTable value="{!channels}" var="c" styleClass="channeltable" >
+            <apex:column ><input class="chedit" type="button" value="Edit" onclick="doEditChannel('{!c.Id}');"/>
+                          <apex:outputPanel layout="none" rendered="{!canDeleteChannel}">
+                            <input class="chedit" type="button" value="Delete" onclick="deleteChannel('{!c.Id}');"/>
+                          </apex:outputPanel>
+            </apex:column>
+            <apex:column value="{!c.Name}"/>
+            <apex:column value="{!c.Max_Sailing_Draft__c}"/>
+            <apex:column value="{!c.Min_UKC__c}"/>
+            <apex:column value="{!c.Max_LOA__c}"/>
+            <apex:column value="{!c.Max_Beam__c}"/>
+            <apex:column ><apex:outputText value="{0,number,0}"><apex:param value="{!c.Max_DWT_Displacement__c}"/></apex:outputText></apex:column>
+            <apex:column value="{!c.Max_Airdraft_Mast__c}"/>
+            <apex:column value="{!c.LastModifiedDate}"/>           
+        </apex:pageBlockTable>
+        <input type="button" value="Add channel" onclick="doAddChannel()"/>
+    </apex:pageBlock>
+
+    <apex:outputPanel id="channeledit">
+        <apex:detail subject="{!actChanId}" rendered="{!showChanEdit}" oncomplete="doStopEditChannel();" relatedList="false" showChatter="false" inlineEdit="true" rerender="channelblock,channeledit"/>
+    </apex:outputPanel>
+    <apex:outputPanel id="preTerminalBlock">
+    <apex:pageBlock title="Terminal" rendered="{!hasPort}" id="terminalblock">
+        <apex:outputPanel id="terminalfilters" styleClass="berthfilters">
+            <div class="filter">
+                <apex:outputLabel for="termfilter" styleClass="filtertitle">Terminal Type</apex:outputLabel>
+                <apex:selectList size="4" id="termfilter" multiselect="true" value="{!terminalSelType}" title="Terminal Type">
+                    <apex:selectOptions value="{!termType}"/>
+                    <apex:actionSupport event="onclick" rerender="terminallisting" status="berthstatus"/>
+                </apex:selectList>
+            </div>
+            <apex:commandButton value="Reset filter" action="{!resetTerminalFilter}" reRender="terminallisting,terminalfilters"/>
+        </apex:outputPanel>
+        <apex:outputPanel id="terminallisting">
+            <apex:pageBlockTable value="{!terminals}" var="t" styleClass="terminaltable">
+                <apex:column ><input type="button" value="Edit" onclick="doEditTerminal('{!t.Id}');"/>
+                              <apex:outputPanel layout="none" rendered="{!canDeleteTerminal}">
+                                <input type="button" value="Delete" onclick="deleteTerminal('{!t.Id}');"/>
+                              </apex:outputPanel>
+                </apex:column>
+                <apex:column ><input class="tid" type="hidden" name="termid" value="{!t.Id}"/></apex:column>
+                <apex:column value="{!t.Name}"/>
+                <apex:column value="{!t.Terminal_Name_local__c}"/>
+                <apex:column value="{!t.Operator_Manager_Name__c}"/>
+                <apex:column value="{!t.Terminal_Type__c}"/>
+                <apex:column value="{!t.LastModifiedDate}"/>           
+            </apex:pageBlockTable>
+            <script type="text/javascript">
+                $j(document).ready(function() {
+                    $j('table.terminaltable tr.dataRow').click(function(e) {
+                        $j('div.waiting').fadeIn(200);
+                        console.log('### clicked');
+                        if(e.ctrlKey){
+                            selTerminalCtrl($j(this));
+                        }
+                        else{
+                            selTerminal($j(this));
+                        }                
+                    });
+                    if ('{!selPortReq.Status__c}' == 'Describing') {        
+                        setTimeout(function() { scrollToBerth(); }, 500);
+                    }
+                });    
+            </script>
+        </apex:outputPanel>
+        <input type="button" value="Add terminal" onclick="doAddTerminal();"/>
+        <apex:outputPanel id="berthbuttons">
+        <apex:outputPanel rendered="{!termsSelected}">
+            <input type="button" value="Add Berths to selected" onclick="showNewBerth();"/>  
+            <input type="button" value="Assign Berths to selected" onclick="showBerthAssignment();"/>
+        </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:pageBlock>
+    
+    <div id="ctadder">
+    <apex:pageBlock title="Add Cargo type" id="ctadder">
+        <apex:pageBlockSection title="Information" rendered="{!addingCT}">
+            <apex:inputField value="{!newCT.Cargo_Group__c}"/>
+            <apex:inputField value="{!newCT.Cargo_Type__c}"/>
+            <apex:inputField value="{!newCT.Cargo_Handling__c}"/>
+            <apex:inputField value="{!newCT.Discharge_Methods__c}"/>
+            <apex:inputField value="{!newCT.Load_Methods__c}"/>
+            <apex:outputField value="{!newCT.Berth__c}"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection title="Information" rendered="{!addingCT}" columns="1">
+            <apex:inputField value="{!newCT.Description__c}"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!saveNewCT}" value="Save" oncomplete="hideNewCT();justRefreshCTs();"/>
+            <apex:commandButton action="{!cancelNewCT}" value="Cancel" oncomplete="hideNewCT();"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    </div>
+    <div id="berthadder">
+    <apex:pageBlock title="Add berth" id="berthadder">
+        <apex:pageBlockSection title="Information" rendered="{!addingBerth}">
+            <apex:inputField value="{!newBerth.name}"/>
+            <apex:inputField value="{!newBerth.ownerId}"/>
+            <apex:inputField value="{!newBerth.Berth_No__c}"/>
+            <apex:outputField value="{!newBerth.Port__c}"/>
+        </apex:pageBlockSection>
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!saveNewBerth}" value="Save" oncomplete="hideNewBerth();justRefreshBerths();"/>
+            <apex:commandButton action="{!cancelNewBerth}" value="Cancel" oncomplete="hideNewBerth();"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    </div>
+    <div id="berthAssignment">
+    <apex:pageBlock title="Assign berth" id="berthAssignment">
+        <apex:pageBlockSection title="Information" rendered="{!assignBerth}">
+            <apex:outputPanel styleClass="berthScroll" layout="block">
+            <apex:pageBlockTable value="{!berthsForAssignment}" var="b" styleClass="berthtable">
+                <apex:column >
+                    <apex:inputCheckbox value="{!berthAssignMap[b.Id]}"/>
+                </apex:column>
+                <apex:column value="{!b.name}"/>
+                <apex:column value="{!b.Berth_No__c}"/>
+                <apex:column value="{!b.Berth_Type__c}"/>
+                <apex:column value="{!b.Berth_Length_Depth__c}"/>
+                <apex:column value="{!b.LastModifiedDate}"/>
+            </apex:pageBlockTable>
+            </apex:outputPanel>
+        </apex:pageBlockSection>
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!assignBerthToNewTer}" value="Assign" oncomplete="hideBerthAssignment();justRefreshBerths();"/>
+            <apex:commandButton action="{!cancelNewBerth}" value="Cancel" oncomplete="hideBerthAssignment();"/>
+        </apex:pageBlockButtons>
+    </apex:pageBlock>
+    </div>
+
+    <apex:outputPanel id="terminaledit">
+        <apex:detail subject="{!termEditId}" rendered="{!editingTerminal}" oncomplete="doDoneEditTerminal();" relatedList="false" showChatter="false" inlineEdit="true" />
+    </apex:outputPanel>
+    </apex:outputPanel>
+    <apex:pageBlock title="Berths" rendered="{!hasPort && !(selPortReq.Status__c == 'Describing')}" id="berthblock" tabStyle="Berth__c">
+        <h3>Find relevant berths</h3>
+        <apex:outputPanel id="berthfilters" styleClass="berthfilters">
+            <div class="filter">
+                <apex:outputLabel for="cgberthfilter" styleClass="filtertitle">Filter 1: Cargo Group</apex:outputLabel>
+                <apex:selectList size="4" id="cgberthfilter" multiselect="true" value="{!berthSelCargoGroups}" title="Cargo group">
+                    <apex:selectOptions value="{!cargoGroups}"/>
+                    <apex:actionSupport event="onclick" rerender="berthlisting,berthfilters" status="berthstatus"/>
+                </apex:selectList>
+            </div>
+            <div class="filter">
+                <apex:outputLabel for="ctberthfilter" styleClass="filtertitle">Filter 2: Cargo Type</apex:outputLabel>
+                <apex:selectList size="4" id="ctberthfilter" multiselect="true" value="{!berthSelCargoTypes}" title="Cargo type" >
+                    <apex:selectOptions value="{!cargoTypes}"/>
+                    <apex:actionSupport event="onclick" rerender="berthlisting,berthfilters" status="berthstatus"/> <!-- oncomplete="alert('{!berthSelCargoTypes}');" -->
+                </apex:selectList>
+            </div>
+            <div class="filter">
+                <apex:outputLabel for="chberthfilter" styleClass="filtertitle {!IF(cargoHandlingsDisabled, 'disabled', '')}">Filter 3: Cargo Handling</apex:outputLabel>
+                <apex:selectList size="4" id="chberthfilter" multiselect="false" value="{!berthSelCargoHandling}" title="Cargo Handling" disabled="{!cargoHandlingsDisabled}">
+                    <apex:selectOptions value="{!cargoHandlings}"/>
+                    <apex:actionSupport event="onclick" reRender="berthlisting,berthfilters" status="berthstatus"/>
+                </apex:selectList>
+            </div>
+            <div class="filter">
+                <apex:outputLabel for="chgearfilter" styleClass="filtertitle {!IF(gearTypesDisabled, 'disabled', '')}">Filter 4: Cargo Gear</apex:outputLabel>
+                <apex:selectList size="4" id="chgearfilter" multiselect="true" value="{!berthSelGearTypes}" title="Cargo Gear" disabled="{!gearTypesDisabled}">
+                    <apex:selectOptions value="{!gearTypes}"/>
+                    <apex:actionSupport event="onclick" reRender="berthlisting" status="berthstatus"/>
+                </apex:selectList>
+            </div>
+            <!--
+            <div class="filter">
+                <apex:outputLabel for="chberthfilter" styleClass="filtertitle">Filter: Shape</apex:outputLabel>
+                <apex:selectList size="4" id="chshapefilter" multiselect="true" title="Shape">
+                </apex:selectList>
+            </div>
+            <div class="filter">
+                <apex:outputLabel for="chberthfilter" styleClass="filtertitle">Filter: Smell</apex:outputLabel>
+                <apex:selectList size="4" id="chsmellfilter" multiselect="true" title="Smell">
+                </apex:selectList>
+            </div>-->
+            <apex:commandButton value="Reset filters" action="{!resetCargoFilters}" reRender="berthlisting,berthfilters"/>
+        </apex:outputPanel>
+        <apex:pageBlockButtons location="top">
+            <apex:commandButton action="{!createBerthAlternatives}" value="Suggest selected berths" id="SuggestSelectedBerths"/><!--rendered="{!selPortReq.Status__c == 'Submitted'}"-->
+            <apex:commandButton action="{!cloneBerths}" value="Clone selected berths"  rendered="{!selPortReq.Status__c == 'Submitted'}"/>
+            <apex:commandButton value="Preview" onclick="window.open('apex/GenerateCaseResponsePDF?Id={!selPortReq.id}', '_blank');" rendered="{!showPreview}"/>
+            <script type="text/javascript">
+                $j('SuggestSelectedBerths').click(function() {
+                    //alert($j(this));
+                    scrollToBerth();
+                });
+            </script>
+        </apex:pageBlockButtons>
+        <apex:actionStatus id="berthstatus" startText="Searching..."/>
+        <apex:outputPanel id="berthlisting">
+            <apex:pageBlockTable value="{!berths}" var="b" styleClass="berthtable" id="berthTable">
+                <apex:column ><apex:inputCheckbox value="{!berthSelMap[b.Id]}"/><input class="bid" type="hidden" name="berthid" value="{!b.Id}"/></apex:column>
+                <apex:column >
+                    <input type="button" value="Clone" onclick="doCloneBerth('{!b.Id}');"/>
+                    <!--<input type="button" value="Edit" onclick="doEditTerminal('{!b.Id}');"/>-->
+                    <!--<apex:commandButton value="Clone" action="{!berthClone}" rerender="berthlisting">
+                        <!--<input class="bid" type="hidden" name="berthid" value="{!b.Id}"/>-->
+                        <!--<apex:param name="selectedBertId"
+                                    value="{!b.id}"
+                                    assignTo="{!selectedBertId}"/>
+                    </apex:commandButton>-->
+                </apex:column>
+                <apex:column value="{!b.name}"/>
+                <apex:column headerValue="Berth Number" >
+                    <apex:outputText value="{0,number,0}">
+                        <apex:param value="{!b.Berth_No__c}"/>
+                    </apex:outputText>
+                </apex:column>
+                <apex:column value="{!b.Max_Sailing_Draft__c}"/>
+                <apex:column value="{!b.Max_Sailing_Draft_Comment__c}"/>
+                <apex:column value="{!b.Berth_Length__c}"/>
+                <apex:column value="{!b.Berth_Depth__c}"/>
+                <apex:column value="{!b.Max_LOA__c}"/>
+                <apex:column value="{!b.Max_Beam__c}"/>
+                <apex:column value="{!b.Primary_Terminal__c}"/>
+                <apex:column headerValue="Max DWT" ><apex:outputText value="{0,number,0}"><apex:param value="{!b.Max_DWT__c}"/></apex:outputText></apex:column>
+                <apex:column value="{!b.Max_Airdraft_Mast__c}"/>
+                <apex:column value="{!b.LastModifiedDate}"/>
+            </apex:pageBlockTable>
+            <script type="text/javascript">
+                $j('table.berthtable tr.dataRow').click(function() {
+                    //alert($j(this));
+                    selBerth($j(this));
+                });
+            </script>
+        </apex:outputPanel>
+    </apex:pageBlock>
+    <apex:pageBlock id="hiddenBlock" rendered="false"></apex:pageBlock>
+    <apex:outputPanel id="berthinfo">
+    <apex:pageBlock title="This Berth is linked to the following Terminals" rendered="{!berthSelected}" tabStyle="Cargo_Type__c" id="berthterminals">
+        <apex:pageBlockTable value="{!berthTerms}" var="t" styleClass="cargotypetable">
+            <apex:column rendered="{!canDeleteBerthTerm}"><input type="button" value="Delete" onclick="deleteBerthTerm('{!t.Id}');"/>
+            </apex:column>
+            <apex:column value="{!t.Terminal__r.Name}"/>
+            <apex:column value="{!t.Terminal__r.Terminal_Name_local__c}"/>
+            <apex:column value="{!t.Terminal__r.Operator_Manager_Name__c}"/>
+            <apex:column value="{!t.Terminal__r.Terminal_Type__c}"/>
+            <apex:column value="{!t.Terminal__r.LastModifiedDate}"/>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+    <apex:detail subject="{!actBerthId}"  rendered="{!berthSelected && !(selPortReq.Status__c == 'Describing')}" relatedList="false" showChatter="false" inlineEdit="true" rerender="berthlisting"/>
+    <apex:pageBlock title="Cargo types for this Berth" rendered="{!berthSelected}" tabStyle="Cargo_Type__c" id="berthcargotypes">
+        <apex:pageBlockButtons location="top">
+        <!-- <apex:commandButton action="{!createNewCargoType}" value="New" reRender="berthcargotypes"/>-->
+            <input type="button" value="New Cargo Type" onclick="showNewCT();"/>  
+        </apex:pageBlockButtons>
+        <apex:pageBlockTable value="{!actBerthCargoTypes}" var="ct" styleClass="cargotypetable">
+            <apex:column ><apex:facet name="header">Name</apex:facet><apex:outputField value="{!ct.Cargo_Type__c}"/><input class="ctid" type="hidden" name="cargotypeid" value="{!ct.Id}"/></apex:column>
+            <apex:column value="{!ct.Cargo_Handling__c}"/>
+            <apex:column value="{!ct.Discharge_Methods__c}"/>
+            <apex:column value="{!ct.Load_Methods__c}"/>
+        </apex:pageBlockTable>
+        <script type="text/javascript">
+            $j('table.cargotypetable tr.dataRow').click(function() {
+                selCargoType($j(this));
+            });
+        </script>
+        <apex:outputPanel id="cargotypeinfo">
+            <apex:pageBlockSection title="Edit Cargo Type" rendered="{!cargoTypeSelected}">
+                <apex:inputField value="{!selCargoType.Cargo_Group__c}"/>       <apex:inputField value="{!selCargoType.Cargo_Type__c}"/>
+                <apex:inputField value="{!selCargoType.Cargo_Handling__c}"/>    <apex:inputField value="{!selCargoType.Discharge_Methods__c}"/>
+                <apex:inputField value="{!selCargoType.Description__c}"/>    <apex:inputField value="{!selCargoType.Load_Methods__c}"/>
+            </apex:pageBlockSection>
+            <apex:commandButton action="{!saveCargoType}" value="Save Cargo Type" reREnder="berthcargotypes,berthfilters"  rendered="{!cargoTypeSelected}"/>
+            <apex:commandButton action="{!deleteCargoType}" value="Delete" reREnder="berthcargotypes,berthfilters"  rendered="{!cargoTypeSelected}"/>
+        <!--
+            <apex:detail subject="{!actCargoTypeId}" rendered="{!cargoTypeSelected}" relatedList="false" showChatter="false" inlineEdit="true" rerender="berthcargotypes,berthfilters"/>
+            -->
+        </apex:outputPanel>
+
+    </apex:pageBlock>
+    
+    </apex:outputPanel>
+
+    <apex:pageBlock title="Describe berth alternatives" id="berthaltlist" rendered="{!selPortReq.Status__c == 'Describing'}">
+        <a name="describeberth"/>
+        <apex:pageBlockButtons location="top">
+            <apex:commandButton action="{!completePortRequest}" value="Submit completed Port Request"/>
+            <apex:commandButton action="{!savePortRequest}" value="Save Port Request"/>
+            <apex:commandButton action="{!cancelPortRequest}" value="Cancel"/>
+            
+            <!--<apex:outputLink value="apex/GenerateCaseResponsePDF?Id={!selPortReq.id}" target="_blank" >Preview</apex:outputLink><br/>-->
+        </apex:pageBlockButtons>
+        <apex:repeat value="{!balts}" var="balt">
+            <apex:pageBlockSection title="{!balt.Name}" columns="1">
+                <apex:inputField value="{!balt.Description__c}" styleClass="berthinput"/>
+                <apex:inputField value="{!balt.Status__c}"/>
+            </apex:pageBlockSection>
+        </apex:repeat>
+    </apex:pageBlock>
+
+    <apex:pageblock title="Suggested berth alternatives" id="berthsugglist" rendered="{!selPortReq.Status__c == 'Answered'}">
+        <apex:pageBlockTable value="{!balts}" var="b" styleClass="balttable">
+            <apex:column value="{!b.Name}"/>
+            <apex:column value="{!b.Berth__c}"/>
+            <apex:column value="{!b.Status__c}"/>
+            <apex:column value="{!b.Description__c}"/>
+        </apex:pageBlockTable>
+    </apex:pageblock>
+</apex:form>
+</apex:page>

@@ -1,0 +1,385 @@
+<!-- c:OPEReportExceptionPanel -->
+<aura:component description="Displays Starlist Exception record details from selected report row." controller="OPEReportExceptionPanelController" >
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="record" type="Object" />
+    <aura:attribute name="error" type="String" />
+    <aura:attribute name="labelMap" type="Map" />
+
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+
+    <aura:method name="loadRecord" action="{!c.doLoadRecord}" description="Gets data from Starlist Exception Record Id"> 
+        <aura:attribute name="recordId" type="String"/> 
+    </aura:method>
+    <aura:method name="clear" action="{!c.doClear}" description="Remove Record Id" /> 
+    <!-- <force:recordData aura:id="recordLoader"
+                        recordId="{! v.recordId }"
+                        mode="VIEW"
+                        fields="ExceptionTypeTitle__c,Exception__c,Exception__r.ExceptionDescription__c,ValidationDataEntity__c,Details__c,DetailsLong__c,CustomerRole__c,Sub_Account_Ids__c,CountryOfCustomerLogic__c,CountryofCustomerList__c,CustomerSegmentLogic__c,CustomerSegmentList__c,PortOfDeliveryLogic__c,PortOfDelivery__c,CountryOfDeliveryLogic__c,CountryofDeliveryList__c,ProductLogic__c,Product__c,ProductCategoryLogic__c,ProductCategory__c,VesselLogic__c,Vessel__c,VesselFlagLogic__c,VesselFlagList__c,VesselTypeLogic__c,VesselTypeList__c,OrderValueLogic__c,OrderValue__c,Other__c,CurrencyIsoCode"
+                        targetFields="{!v.record}"
+                        targetError="{!v.error}" 
+                        recordUpdated="{!c.recordUpdated}"/> -->
+
+    <lightning:card iconName="custom:custom11" title="Selected Starlist Exception" class="slds-p-around_medium">
+        <lightning:spinner aura:id="spinner" variant="brand" size="large" class="slds-hide"/>
+        <aura:if isTrue="{!empty(v.recordId)}">
+                <div class="slds-p-around_medium">Click on a row of the report to display full details.</div>
+        <aura:set attribute="else">
+            <aura:if isTrue="{!not(empty(v.error))}">
+                <div class="slds-notify slds-notify_alert slds-alert_error" role="alert">
+                    <h2>Error: {!v.error}</h2>
+                </div>
+            </aura:if>
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_2-of-5">
+                    <!-- Details -->
+                    <div class="slds-form" role="list">
+                        <div class="slds-form__row">
+                            <div class="slds-form__item" role="listitem">
+                                <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                    <span class="slds-form-element__label">{!v.labelMap.ExceptionTypeTitle__c}</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static slds-text-longform">{!v.record.ExceptionTypeTitle__c}</div>
+                                    </div>
+                                </div>
+                                <!-- <lightning:outputField fieldName="ExceptionTypeTitle__c" class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent" /> -->
+                            </div>
+                        </div>
+                        <div class="slds-form__row">
+                            <div class="slds-form__item" role="listitem">
+                                <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                    <span class="slds-form-element__label">Exception Description</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static slds-text-longform">{!v.record.Exception__r.ExceptionDescription__c}</div>
+                                    </div>
+                                </div>
+                                <!-- <lightning:outputField fieldName="Exception__r.ExceptionDescription__c" class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent" /> -->
+                            </div>
+                        </div>
+                        <aura:if isTrue="{! and(not(empty(v.record.ValidationDataEntity__c)),v.record.ValidationDataEntity__c!='No Validation')}">
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                        <span class="slds-form-element__label">{!v.labelMap.ValidationDataEntity__c}</span>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-text-longform">{!v.record.ValidationDataEntity__c}</div>
+                                        </div>
+                                    </div>
+                                    <!-- <lightning:outputField fieldName="ValidationDataEntity__c" class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent" /> -->
+                                </div>
+                            </div>
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                        <span class="slds-form-element__label">{!v.labelMap.Details__c}</span>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static slds-text-longform">{!v.record.Details__c}</div>
+                                        </div>
+                                    </div>
+                                    <!-- <lightning:outputField fieldName="Details__c" class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent" /> -->
+                                </div>
+                            </div>
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{! not(empty(v.record.DetailsLong__c)) }">
+                                    <div class="slds-form__row">
+                                        <div class="slds-form__item" role="listitem">
+                                            <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                                <span class="slds-form-element__label">{!v.labelMap.DetailsLong__c}</span>
+                                                <div class="slds-form-element__control">
+                                                    <div class="slds-form-element__static slds-text-longform"><lightning:formattedText linkify="true" value="{!v.record.DetailsLong__c}" /></div>
+                                                </div>
+                                            </div>
+                                            <!-- <lightning:outputField fieldName="DetailsLong__c" class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent" /> -->
+                                        </div>
+                                    </div>
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_3-of-5">
+                    <!-- CONDITIONS -->
+                    <div class="slds-section slds-is-open">
+                        <h3 class="slds-section__title slds-theme_shade">
+                            <span class="slds-truncate slds-p-horizontal_small slds-p-vertical_xx-small slds-text-title_caps" title="Exception Conditions">Exception Conditions</span>
+                        </h3>
+                    <div aria-hidden="false" class="slds-section__content"></div>
+                        <div class="slds-form" role="list">
+                            <aura:if isTrue="{! not(empty(v.record.Sub_Account_Ids__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">Applies to</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div role="listitem">
+                                            <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                                <span class="slds-form-element__label">{!v.labelMap.Sub_Account_Ids__c}</span>
+                                                <div class="slds-form-element__control">
+                                                    <div class="slds-form-element__static">
+                                                        <ul>
+                                                        <aura:iteration items="{!v.record.SubAccounts}" var="item">
+                                                            <li>{!item.Code+'-'+item.Name}</li>
+                                                        </aura:iteration>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- <lightning:outputField fieldName="Sub_Account_Ids__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                        </div>
+                                        <div role="listitem">
+                                            <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                                <span class="slds-form-element__label">{!v.labelMap.CustomerRole__c}</span>
+                                                <div class="slds-form-element__control">
+                                                    <div class="slds-form-element__static">{!v.record.CustomerRole__c}</div>
+                                                </div>
+                                            </div>
+                                            <!-- <lightning:outputField fieldName="CustomerRole__c" class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.CountryofCustomerList__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.CountryOfCustomerLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.CountryofCustomerList__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.CountryofCustomerList__c}</div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="CountryofCustomerList__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>                                    
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.CustomerSegmentList__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.CustomerSegmentLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.CustomerSegmentList__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.CustomerSegmentList__c}</div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="CustomerSegmentList__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.CSTeam__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.CSTeamLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.CSTeam__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.CSTeam__c}</div>
+                                            </div>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.SalesTerritory__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.SalesTerritoryLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.SalesTerritory__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.SalesTerritory__c}</div>
+                                            </div>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.PortOfDelivery__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.PortOfDeliveryLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.PortOfDelivery__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">
+                                                    <ul>
+                                                    <aura:iteration items="{!v.record.PortsofDelivery}" var="item">
+                                                        <li>{!item.Code+'-'+item.Name}</li>
+                                                    </aura:iteration>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="PortOfDelivery__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.CountryofDeliveryList__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.CountryOfDeliveryLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.CountryofDeliveryList__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.CountryofDeliveryList__c}</div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="CountryofDeliveryList__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.Product__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.ProductLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.Product__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">
+                                                    <ul>
+                                                    <aura:iteration items="{!v.record.Products}" var="item">
+                                                        <li>{!item.Code+'-'+item.Name}</li>
+                                                    </aura:iteration>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="Product__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.ProductCategory__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.ProductCategoryLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.ProductCategory__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.ProductCategory__c}</div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="ProductCategory__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.Vessel__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.VesselLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.Vessel__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">
+                                                    <ul>
+                                                    <aura:iteration items="{!v.record.Vessels}" var="item">
+                                                        <li>{!item.Code+'-'+item.Name}</li>
+                                                    </aura:iteration>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="Vessel__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.VesselFlagList__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.VesselFlagLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.VesselFlagList__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.VesselFlagList__c}</div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="VesselFlagList__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.VesselTypeList__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">{!v.record.VesselTypeLogic__c}</div>
+                                    </div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.VesselTypeList__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.VesselTypeList__c}</div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="VesselTypeList__c"  class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.OrderValue__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8 starlist-condition-logic">
+                                        <div class="slds-badge slds-text-body_small">Applies when</div>
+                                    </div>
+                                    <div class="slds-col" role="listitem">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">Order Value</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">
+                                                    <i class="slds-text-body_small slds-m-right_small">{!v.record.OrderValueLogic__c}</i>
+                                                    <lightning:formattedNumber value="{!v.record.OrderValue__c}" style="currency" currencyCode="{!v.record.CurrencyIsoCode}"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>    
+                                </div>
+                                <!-- <div class="slds-form__row">
+                                    <div class="slds-grid slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.OrderValueLogic__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">{!v.record.OrderValueLogic__c}</div>
+                                            </div>
+                                        </div>
+                                            <lightning:outputField fieldName="OrderValueLogic__c"/>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2"><lightning:formattedNumber value="{!v.record.OrderValue__c}" style="currency" currencyCode="{!v.record.CurrencyIsoCode}"/></div>
+                                    </div>
+                                </div> -->
+                            </aura:if>
+                            <aura:if isTrue="{! not(empty(v.record.Other__c)) }">
+                                <div class="slds-grid">
+                                    <div class="slds-col slds-size_1-of-8">&nbsp;</div>
+                                    <div class="slds-col">
+                                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent">
+                                            <span class="slds-form-element__label">{!v.labelMap.Other__c}</span>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static slds-text-longform"><lightning:formattedText linkify="true" value="{!v.record.Other__c}" /></div>
+                                            </div>
+                                        </div>
+                                        <!-- <lightning:outputField fieldName="Other__c" class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent"/> -->
+                                    </div>
+                                </div>
+                            </aura:if>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aura:set>
+        </aura:if>
+    </lightning:card>
+</aura:component>

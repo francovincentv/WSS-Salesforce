@@ -1,0 +1,63 @@
+<aura:component implements="lightning:isUrlAddressable,flexipage:availableForRecordHome,force:hasRecordId" description="Displays a report of the related Starlist Exceptions for a Sub-Account">
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="accountRecord" type="Object"/>
+    <aura:attribute name="recordLoadError" type="String"/>
+    
+    <aura:attribute name="reportTitle" type="String"/>
+    <aura:attribute name="filtersAttribute" type="String"/>
+    <aura:attribute name="reportLinkFilters" type="String"/>
+    <aura:attribute name="ready" type="Boolean" default="false"/>
+
+    <aura:attribute name="reportLinkColumn" type="Integer" default="0"/>
+
+    <aura:handler event="c:GroupingDataRowClickedEvent" action="{!c.loadRecord}"/>
+    <!-- Add an "init" handler to handle the first "v.pageReference" value -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!-- Add a "change" handler to handle all changes to the "v.pageReference" value -->
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.onPageReferenceChange}"/>
+
+    <force:recordData aura:id="recordLoader"
+        recordId="{!v.recordId}"
+        fields="Name,Account_Number__c,Country_of_Domicile__c,CS_Team__c,Sales_Territory__c,Type"
+        targetFields="{!v.accountRecord}"
+        targetError="{!v.recordLoadError}"
+        recordUpdated="{!c.recordUpdated}"
+    />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+    <div class="slds-grid slds-wrap slds-grid_vertical-align-start slds-scrollable_y" style="height: 100%;">
+        <div class="slds-col slds-size_1-of-1 slds-page-header slds-var-m-bottom_small">
+            <div class="slds-page-header__row">
+                <lightning:tile label="{!v.accountRecord.Name}" href="{!'/'+v.recordId}">
+                    <aura:set attribute="media">
+                        <lightning:icon iconName="standard:account"/>
+                    </aura:set>
+                    <dl class="slds-list_horizontal slds-wrap">
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Account Number">Account Number:</dt>
+                        <dd class="slds-item_detail slds-truncate" title="{!v.accountRecord.Account_Number__c}">{!v.accountRecord.Account_Number__c}</dd>
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Category">Category:</dt>
+                        <dd class="slds-item_detail slds-truncate" title="{!v.accountRecord.Type}">{!v.accountRecord.Type}</dd>
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Country of Domicile">Country of Domicile:</dt>
+                        <dd class="slds-item_detail slds-truncate" title="{!v.accountRecord.Country_of_Domicile__c}">{!v.accountRecord.Country_of_Domicile__c}</dd>
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="CS Team">CS Team:</dt>
+                        <dd class="slds-item_detail slds-truncate" title="{!v.accountRecord.CS_Team__c}">{!v.accountRecord.CS_Team__c}</dd>
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Sales Territory">Sales Territory:</dt>
+                        <dd class="slds-item_detail slds-truncate" title="{!v.accountRecord.Sales_Territory__c}">{!v.accountRecord.Sales_Territory__c}</dd>
+                    </dl>
+                </lightning:tile>
+            </div>
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-scrollable slds-var-m-bottom_small" style="max-height: 50%;">
+            <article class="slds-card">
+                <div class="slds-card__body">
+                <aura:if isTrue="{!v.ready}">
+                    <c:ReportContainer aura:id="report-component" reportDeveloperName="Active_OPEs_Related_to_SubAccounts_JeC" filtersAttribute="{!v.filtersAttribute}" reportLinkFilters="{!v.reportLinkFilters}" linkColumn="{!v.reportLinkColumn}"/>
+                </aura:if>
+                </div>
+            </article>
+        </div>
+        <div class="slds-col slds-size_1-of-1">
+            <c:OPEReportExceptionPanel aura:id="exceptionPanel"/>
+        </div>
+    </div>
+</aura:component>

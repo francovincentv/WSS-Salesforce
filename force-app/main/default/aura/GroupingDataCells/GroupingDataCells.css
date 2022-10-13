@@ -1,0 +1,16 @@
+.THIS div.long-text-cell{
+    width: 25rem;
+    white-space: normal;
+    word-wrap: break-word;
+}
+tr.THIS:hover > td{
+    background-color: rgb(218, 233, 247) !important;
+    cursor: pointer;
+}
+tr.THIS.row-selected{
+    font-weight: bold;
+    background-color: rgb(218, 233, 247) !important;
+}
+tr.THIS.row-selected td{
+    background-color: transparent !important;
+}

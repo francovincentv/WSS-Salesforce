@@ -1,0 +1,5 @@
+<design:component >
+	<design:attribute name="reportIdAttribute" label="Report ID" description="Use the ID of the report that you want to display. Make sure the user has access to it"/>
+	<design:attribute name="title" label="Report Title" description="Additional header for the Report"/>
+	<design:attribute name="filtersAttribute" label="Filters" description="Comma-separated list of filter values, leave empty element for locked filters "/>
+</design:component>

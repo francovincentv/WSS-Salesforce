@@ -1,0 +1,324 @@
+<apex:page standardController="Port_Request__c" extensions="GenerateCaseResponsePDFExt"  showHeader="false" sidebar="false" standardStylesheets="false" applyHtmlTag="false" docType="html-5.0" renderAs="pdf">
+<html>
+<head>
+    <style>
+        @page {
+            size: a4;
+            margin-right: 0mm;
+            margin-left: 0mm;
+            margin-top: 6mm;
+            margin-bottom: 250px;
+            @bottom-center{
+                content: element(footer);
+                /*background-image: url('{!$Resource.Wil_pdf_Bottom}');
+                background-position: left top;
+                z-index: 10;*/
+            }
+        }
+        .page-break {
+            display:block;
+            page-break-after:always;
+        }
+        .AppChannel{
+            font-size: 11px;
+        }
+        .AppChannel th{
+            font-size: 11px;
+            width: "(100/9)%";
+            /*font-style: normal;*/
+
+        }
+        .AppChannel tr{
+            width: 10px
+        }
+        .Berth{
+           font-size: 11px; 
+        }
+        .Berth th{
+            font-size: 11px;
+            width: "(100/10)%";
+            /*font-style: normal;*/
+        }
+        .TerName{
+            font-size: 11px;
+        }
+        .TerName th{
+            font-size: 11px;
+            width: "(100/4)%";
+            /*font-style: normal;*/
+        }
+        .BerthDetails{
+            font-size: 11px;
+        }
+        .BerthDetails th{
+            font-size: 11px;
+            width: "(100/5)%";
+           /*font-style: normal;*/
+        }
+        table{
+            /*text-align: left; */
+            border-spacing: 0px;  
+            color: #4F5154;
+        }
+        table tr{
+            height: 23px;
+        }
+        table td{
+            font-family: Arial, Helvetica, sans-serif;
+            /*font-size: 11px;*/
+        }
+        table th{           
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .column-1 {
+          width: 148px;
+        }
+        div{
+            margin-top: 55px;
+        }
+        .Heading{
+            font-weight: lighter;
+            /* font-style: normal; */
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 23px;
+            color: #9E9E9E;
+            letter-spacing: 20px;
+        }
+        .WH{
+            
+            font-family: Arial, Helvetica, sans-serif;
+            color: #9E9E9E;
+            font-weight: normal;
+            font-size: 10px;
+        }
+        .port{
+            font-size: 13px;
+        }
+        .Contact{
+            font-size: 13px;
+        }
+        .Image{
+            float: right;
+            /*margin-top: -92px;*/
+        }
+
+        div.footer {
+            position: running(footer);
+            border: solid 1px white;
+            width: 100%;
+            height: 400px;
+        }
+        div.footer img {
+            border: solid 1px white;
+            width: 800px;
+            margin-left: -4px;
+        }
+        div#mainpage {
+            margin: 0em 3em 0em 3em;
+        }
+    </style>
+</head>
+<body>
+    <div class="footer"><img src="{!$Resource.Wil_pdf_Bottom}"/></div>
+    <div id="mainpage">
+        <div >
+            <h6 class="WH">WILHELMSEN</h6>
+            <h6 class="WH" style="margin-top: -19px;">SHIPS SERVICE</h6>
+            <h6 class="WH" style="margin-top: -14px;color: #303f9f;">SHIPS AGENCY</h6>
+        </div>
+        <apex:outputPanel styleClass="Image">
+            <apex:image url="{!$Resource.Wilhelmsen_Logo}" width="150" height="70" style="margin-top: -100px;"/>
+        </apex:outputPanel>
+        <div id="Heading">
+            <h2 class="Heading" style="letter-spacing: 10px;">PORT INFORMATION</h2>
+            <h2 class="Heading" style="margin-top: -12px;color: #303f9f;text-transform: uppercase;">{!selPort.Name}</h2>
+        </div>
+      <div>
+        <table style="width: 48%;float: left;" class="port">
+            <col width="100"/>
+            <col width="100"/>
+            <tr style="background-color: #1363B4;">
+                <th>Port</th>
+                <th/>
+            </tr>
+            <tr>
+                <td>UN / LOCODE</td>
+                <td>{!selPort.Port_Code__c}</td>
+            </tr>
+            <tr style="background-color:#dae5f4;">
+                <td>Port Name (official)</td>
+                <td>{!selPort.Name}</td>
+            </tr>
+            <tr>
+                <td>Port Name (local)</td>
+                <td>{!selPort.Port_Name_local__c}</td>
+            </tr>
+            <tr style="background-color:#dae5f4;">
+                <td>Other names</td>
+                <td>{!selPort.Other_names__c}</td>
+            </tr>
+            <tr>
+                <td>Time Zone</td>
+                <td>{!selPort.Time_Zone__c}</td>
+            </tr>
+            <tr style="background-color:#dae5f4;">
+                <td>Pilot Escort </td>
+                <td>{!selPort.Pilot_Escort__c}</td>
+            </tr>
+            <tr>
+                <td>Salinity range</td>
+                <td>{!selPort.Salinity_range__c}</td>
+            </tr>
+        </table>
+        <table style="width: 48%;float: right;" class="Contact">
+                <col width="50"/>
+                <col width="200"/>
+                <tr style="text-align: left;background-color: #1363B4;">
+                    <th>Contact</th>
+                    <th/>
+                </tr>
+                <tr style="background-color:#dae5f4;">
+                    <td>Name</td>
+                    <td>{!selPort.Name__c}</td>
+                </tr>
+                <tr>
+                    <td>E-mail</td>
+                    <td>{!selPort.Email__c}</td>
+                </tr>
+                <tr style="background-color:#dae5f4;">
+                    <td>Phone</td>
+                    <td>{!selPort.Phone__c}</td>
+                </tr>
+            </table>
+        </div>
+        <p></p>
+        <br/>
+        <div style="margin-top: 240px;">
+            <table style="width: 100%;text-align: center;" class="AppChannel">
+                <apex:variable value="{!1}" var="i"/>
+                <tr style="background-color: #1363B4;">
+                    <th class="column-1">Approach Channel Name</th>
+                    <th class="column-1">Max Sailing Draft:</th>
+                    <th class="column-1">Min UKC</th>
+                    <th class="column-1">Max LOA</th>
+                    <th class="column-1">Max Beam</th>
+                    <th class="column-1">Max DWT / Displacement</th>
+                    <th class="column-1">Max Airdraft (Mast)</th>
+                    <th class="column-1">Max Airdraft (Hatch)</th>
+                    <th class="column-1">Last modified</th>
+                </tr>
+            <apex:repeat value="{!channels}" var="channel">
+                <tr style="background-color:{!IF(mod(i,2)==0, '#dae5f4', '')};">
+                    <td>{!channel.Name}</td>
+                    <td>{!channel.Max_Sailing_Draft__c}</td>
+                    <td>{!channel.Min_UKC__c}</td>
+                    <td>{!channel.Max_LOA__c}</td>
+                    <td>{!channel.Max_Beam__c}</td>
+                    <td>{!channel.Max_DWT_Displacement__c}</td>
+                    <td>{!channel.Max_Airdraft_Mast__c}</td>
+                    <td>{!channel.Max_Airdraft_Hatch__c}</td>
+                    <td>
+                        <apex:outputText value="{0, date, medium}">                    
+                            <apex:param value="{!channel.LastModifiedDate}" /> 
+                        </apex:outputText>
+                    </td>
+                </tr>
+                <apex:variable value="{!i+1}" var="i" />
+            </apex:repeat>
+            </table>
+        </div>
+        <p></p>
+        <div class="page-break">
+            <table style="width: 100%;text-align: center;" class="TerName">
+                <apex:variable value="{!1}" var="i"/>
+                <tr style="background-color: #1363B4;">
+                    <th class="column-1">Terminal Name (official)</th>
+                    <th class="column-1">Terminal Name (local)</th>
+                    <th class="column-1">Operator / Manager</th>
+                    <th class="column-1">Terminal Type</th>
+                </tr>
+            <apex:repeat value="{!terminals}" var="Terminal">
+                <tr style="background-color:{!IF(mod(i,2)==0, '#dae5f4', '')};">
+                    <td>{!Terminal.Name}</td>
+                    <td>{!Terminal.Terminal_Name_local__c}</td>
+                    <td>{!Terminal.Operator_Manager_Name__c}</td>
+                    <td>{!Terminal.Terminal_Type__c}</td>
+                </tr>
+                <apex:variable value="{!i+1}" var="i" />
+            </apex:repeat>
+            </table>
+        </div>
+        <!--<apex:outputPanel styleClass="watermark" layout="block">
+            <img src="{!$Resource.Wil_pdf_Bottom}" width="100%" height="100%" class="watermark"
+            style="position: absolute; top:20cm; z-index:0" />
+        </apex:outputPanel>-->
+        <br clear="all" style="page-break-after:always" /> 
+        <div>
+            <table style="width: 100%;text-align: center;" class="Berth">
+                <apex:variable value="{!1}" var="i"/>
+                <tr style="background-color: #1363B4;">
+                    <th class="column-1">Berth Name</th>
+                    <th class="column-1">Berth No</th>
+                    <th class="column-1">Max Sailing Draft</th>
+                    <th class="column-1">Min UKC</th>
+                    <th class="column-1">Max LOA</th>
+                    <th class="column-1">Max Beam</th>
+                    <th class="column-1">Max DWT / Displacement</th>
+                    <th class="column-1">Max Airdraft (Mast)</th>
+                    <th class="column-1">Max Airdraft (Hatch)</th>
+                    <th class="column-1">Last modified</th>
+                </tr>
+                <apex:repeat value="{!berths}" var="berth">
+                    <tr style="background-color:{!IF(mod(i,2)==0, '#dae5f4', '')};">
+                        <td>{!berth.name}</td>
+                        <td>{!berth.Berth_No__c}</td>
+                        <td>{!berth.Max_Sailing_Draft__c}</td>
+                        <td>{!berth.Min_UKC_mtr__c}</td>
+                        <td>{!berth.Max_LOA__c}</td>
+                        <td>{!berth.Max_Beam__c}</td>
+                        <td>{!berth.Max_DWT_Displacement__c}</td>
+                        <td>{!berth.Max_Airdraft_Mast__c}</td>
+                        <td>{!berth.Max_Airdraft_Hatch__c}</td>
+                        <td>
+                            <apex:outputText value="{0, date, medium}">                    
+                                <apex:param value="{!berth.LastModifiedDate}" /> 
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <apex:variable value="{!i+1}" var="i" />
+                </apex:repeat>
+            </table>
+        </div>
+        <p></p>
+        <div>
+            <h5>Berth comments</h5>
+            <table style="width: 100%;margin-top: -20px;text-align: center;" class="BerthDetails">
+                <apex:variable value="{!1}" var="i"/>
+                <tr style="background-color: #1363B4;">
+                    <th style="width: 62px;">Berth Name</th>
+                    <th style="width: 55px;">Berth No</th>
+                    <th class="column-1">Cargo Groups Handled</th>
+                    <th class="column-1">Cargo Type(s) Handled</th>
+                    <th class="column-1">Comments</th>
+                </tr>
+            <apex:repeat value="{!berths}" var="berth">
+                <tr style="background-color:{!IF(mod(i,2)==0, '#dae5f4', '')};">
+                    <td>{!berth.Name}</td>
+                    <td>{!berth.Berth_No__c}</td>
+                    <td><apex:outputText value="{!SUBSTITUTE(JSENCODE(berthCGMap[berth.id]),',','<br/>') }"  escape="false"/></td>
+                    <td><apex:outputText value="{!SUBSTITUTE(JSENCODE(berthCTMap[berth.id]),',','<br/>')}" escape="false"/></td>              
+                    <td><apex:outputField value="{!selBerth2Alternative[berth.id].Description__c}" /> </td>
+                </tr>
+                <apex:variable value="{!i+1}" var="i" />
+            </apex:repeat>
+            </table>
+        </div>
+         <!--<apex:outputPanel styleClass="watermark" layout="block">
+            <img src="{!$Resource.Wil_pdf_Bottom}" width="50%" height="50%" class="watermark"
+            style="position: relative; top:19cm; z-index:0" />
+        </apex:outputPanel>-->
+    </div>    
+</body>
+</html>
+</apex:page>

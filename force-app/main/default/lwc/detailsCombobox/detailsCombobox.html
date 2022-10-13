@@ -1,0 +1,25 @@
+<template>
+    <div class="slds-grid" style="padding-left: 1rem; align-items: end;">
+        <lightning-combobox
+                name="details"
+                label="Detail List"
+                value={detailText}
+                placeholder={detailText}
+                options={options}
+                onchange={handleChange} 
+                disabled={isViewMode}
+                ></lightning-combobox>
+        <template if:true={isViewMode}>
+            <div class="slds-col slds-size_1-of-8 "  style="padding-left: 0.3rem">
+                <div class="slds-m-top_medium" >
+                    <lightning-button-icon title="Edit" icon-name="utility:edit" onclick={switchForm} slot="actions" alternative-text="edit" disabled={noEditPermission}></lightning-button-icon> 
+                </div>
+            </div>
+        </template>
+        <template if:false={isViewMode}>
+            <div class= "slds-grid" style="padding-left: 0.3rem">
+                <lightning-button-icon title="Okay" icon-name="utility:check" onclick={switchForm} slot="actions" alternative-text="Okay" type="submit"></lightning-button-icon>                 
+            </div>
+        </template>
+    </div>
+</template>

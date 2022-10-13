@@ -1,0 +1,21 @@
+<aura:component implements="force:hasRecordId,force:hasSObjectName,flexipage:availableForRecordHome" controller="QuoteInitializationAutomation">
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="sObjectName" type="String" />
+    <aura:attribute name="showInsertQuoteLine" type="boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <div style="background-color: white; border-radius: 4px">
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_6-of-12">
+                <c:GetQuotePdf recordId="{!v.recordId}"/>
+            </div>
+            <div class="slds-col slds-size_6-of-12">
+                <c:customerContractIntegration recordId="{!v.recordId}" objectApiName="{!v.sObjectName}"/>
+            </div>
+            <aura:if isTrue="{!v.showInsertQuoteLine}">
+                <div class="slds-col slds-size_6-of-12">
+                    <c:insertQuoteLines recordId="{!v.recordId}"/>
+                </div>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

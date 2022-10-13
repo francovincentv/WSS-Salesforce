@@ -1,0 +1,6 @@
+<aura:event type="APPLICATION" description="Fired when user clicks on a data row in the report">
+    <aura:attribute name="componentId" type="String"/>
+    <aura:attribute name="item" type="Object"/>
+    <aura:attribute name="groupingKey" type="String"/>
+    <aura:attribute name="index" type="Integer"/>
+</aura:event>

@@ -1,0 +1,11 @@
+<aura:component implements="force:lightningQuickAction,lightning:actionOverride,force:hasRecordId,force:hasSObjectName" >
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+     <lightning:card >
+         <div class="slds-box" >
+             <div class="slds-border_bottom" style="text-align: center; font-size: x-large; border-block-color: black;margin-bottom: 1.5rem;">
+             	<h6>Starlist Exception Request Form</h6>
+             </div>
+         		<lightning:flow aura:id="flowData" />
+         </div>
+    </lightning:card>
+</aura:component>

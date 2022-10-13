@@ -1,0 +1,5 @@
+<apex:page showHeader="true" sidebar="true" id="wholepage" docType="html-5.0">
+
+	<apex:include pageName="PIT"/>
+
+</apex:page>

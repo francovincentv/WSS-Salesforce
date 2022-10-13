@@ -1,0 +1,214 @@
+<template>
+    <!--START: Initail screen-->
+    <article class="slds-card">
+        <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <lightning-icon icon-name="standard:account" alternative-text="Contract Parties"
+                        title="Contract Parties" size="small"></lightning-icon>
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title">
+                        <b><span>Contract Parties ({recordCount})</span></b>
+                    </h2>
+                </div>
+                <div class="slds-no-flex">
+                    <button class="slds-button slds-button_neutral" onclick={showPopup}>Add/Remove</button>
+                </div>
+            </header>
+        </div>
+    </article>
+    <!-- END : Initail screen-->
+
+    <!-- START : model of the selection screen -->
+    <template if:true={showModal}>
+        <div class="demo-only demo-only_viewport" style="height:640px">
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small slds-list-builder"
+                aria-labelledby="id-of-modalheader-h2" aria-modal="true" aria-describedby="modal-content-id-1">
+                <div class="slds-modal__container">
+
+                    <!-- START : Header -->
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close" onclick={closePopup}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" size="small">
+                            </lightning-icon>
+                        </button>
+                        <h2 id="id-of-modalheader-h2" class="slds-text-heading_medium">Contract Parties</h2>
+                        <p class="slds-m-top_x-small">Please select at least one account to relate to this opportinuty.
+                        </p>
+                        <p class="slds-m-top_x-small">Accounts already related to other opportunity needs to be removed
+                            before the closure of the contract</p>
+                    </header>
+                    <!-- END : Header -->
+
+                    <!-- START : Body -->
+                    <div class="slds-modal__content slds-grow" id="modal-content-id-1">
+                        <template if:false={error}>
+                            <div class="slds-grid slds-grid_vertical">
+                                <div
+                                    class="slds-p-vertical_x-small slds-p-horizontal_large slds-shrink-none slds-theme_shade">
+                                    
+                                    <!-- START : Search Bar -->
+                                    <!-- Hiding this search bar when opportunity record type is 'Special Offer' -->
+                                    <template if:false={specialOfferOpp}>
+                                        <template if:true={contractTab}>
+                                            <div class="slds-text-title slds-m-bottom_x-small">Please enter full number of a
+                                                contract:</div>
+                                        </template>
+                                        <lightning-input name="enter-search" label="Search Accounts" type="search"
+                                            placeholder="Search Accounts" variant="label-hidden" onchange={filterAccounts}>
+                                        </lightning-input>
+                                    </template>
+                                    <!-- END : Search Bar -->
+                
+                                    <div class="slds-text-title slds-m-top_x-small" aria-live="polite">
+                                        {selectedItemsLength} Item(s) Selected
+                                    </div>
+                                </div>
+
+
+                                <!-- START : Tabs -->
+                                <lightning-tabset variant="scoped" active-tab-value="heirarchy">
+                                    <!-- START : Sub Accounts Tab -->
+                                    <!-- Hiding this tab when opportunity record type is 'Special Offer' -->
+                                    <template if:false={specialOfferOpp}>
+                                        <lightning-tab label="Sub Accounts" onactive={availableTabSelected}>
+                                            <c-accounts-to-show account-to-show={accountToShow} availble-page=true
+                                                icon="utility:add" title="Add" show-mutliselect-icon=true
+                                                select-all-icon="utility:multi_select_checkbox"
+                                                onaccountselect={handleSelection} onselectall={handleSelectAll}>
+                                            </c-accounts-to-show>
+                                        </lightning-tab>
+                                    </template>
+                                    <!-- END : Sub Accounts Tab -->
+
+                                    <!-- START : Account Basket Tab  -->
+                                    <lightning-tab label="Account Basket" onactive={selectedTabSelected}>
+                                        <template if:true={showHeirarchyInfo}>
+                                            <div class="slds-text-title slds-m-bottom_small"> * Accounts selected in the
+                                                hierarchy shouldn't visible here</div>
+                                        </template>
+                                        <c-accounts-to-show account-to-show={contractsToCreate}
+                                            select-all-icon="utility:multi_select_checkbox" selected-page=true
+                                            icon="utility:close" title="Remove" show-mutliselect-icon=true
+                                            onaccountdeselect={handleDesection} onremoveall={handleRemoveAll}>
+                                        </c-accounts-to-show>
+                                    </lightning-tab>
+                                    <!-- END : Account Basket Tab  -->
+
+                                    <!-- START : Contract Parties Tab -->
+                                    <lightning-tab label="Contract Parties" onactive={relatedTabSelected}>
+                                        <c-accounts-to-show account-to-show={existingContractParties} existing-page=true
+                                            icon="utility:delete" title="Delete"
+                                            show-mutliselect-icon={showDeleteAllIcon}
+                                            select-all-icon="utility:multi_select_checkbox"
+                                            oncontractdelete={handleDelete} ondeleteall={handleDeleteAll}>
+                                        </c-accounts-to-show>
+                                    </lightning-tab>
+                                    <!-- END : Contract Parties Tab -->
+
+                                    <!-- START : Account Hierarch Tab -->
+                                    <!-- Hiding this tab when opportunity record type is 'Special Offer' -->
+                                    <template if:false={specialOfferOpp}>
+                                        <lightning-tab label="Account  Hierarchy" onactive={heirarchyTabSelected}
+                                            value="heirarchy">
+                                            <c-account-hierarchy acc-id={oppAccountId} grid-data={gridData}
+                                                ondataload={loadGridDataFromChild} onerror={handleHierarchyError}
+                                                onrowselect={handleHierarchyRowSelection}></c-account-hierarchy>
+                                        </lightning-tab>
+                                    </template>
+                                     <!-- END : Account Hierarch Tab -->
+
+                                    <!-- START : Contracts Tab -->
+                                    <lightning-tab label="Contracts" onactive={contractTabSelected}>
+                                        <c-accounts-to-show account-to-show={contractAccounts} availble-page=true
+                                            icon="utility:add" title="Add" show-mutliselect-icon=true
+                                            select-all-icon="utility:multi_select_checkbox"
+                                            onaccountselect={handleSelection}
+                                            onselectall={handleContractSelectAll}></c-accounts-to-show>
+                                    </lightning-tab>
+                                    <!-- END : Contracts Tab -->
+
+                                </lightning-tabset>
+                                <!-- End : Tabs -->
+
+                            </div>
+                        </template>
+
+                        <!-- START : Error screen -->
+                        <template if:true={error}>
+                            <c-error-panel errors={error}></c-error-panel>
+                        </template>
+                        <!-- END : Error screen -->
+                    </div>
+                    <!-- END : Body -->
+
+                    <!--loading spinner start... style=Brand Medium (blue dots)-->
+                    <div if:true={spinner}>
+                        <div id="spinnerId" class="slds-spinner_container" style="background-color: transparent">
+                            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative"
+                                role="alert">
+                                <span class="slds-assistive-text">Loading</span>
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Loading spinner end-->
+
+                    <!-- START : Footer -->
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closePopup}>Cancel</button>
+                        <template if:false={error}>
+                            <button class="slds-button slds-button_brand" onclick={handleSave}>Save</button>
+                        </template>
+                    </footer>
+                    <!-- START : Footer -->
+
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+
+        <!-- START : Confirmation alert screen before save -->
+        <template if:true={showAlert}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container" style="width:20px">
+                    <div class="slds-modal__content slds-p-around_medium" style=" box-shadow:  -0em 0 2.8em black; border-radius: 10px;">
+                        <p class="slds-align_absolute-center slds-text-title_caps slds-text-title_bold">Alert</p>
+                        <div class="slds-border_top slds-m-around_xx-small"></div>
+                        <p class="slds-text-align_center slds-p-around_medium">{label.labelApprovalAlert}</p>
+                        <div class="slds-align_absolute-center">
+                            <lightning-button variant="brand" onclick={closeAlert} label="Continue"></lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            </section>
+        </template>
+        <!-- END : Confirmation alert screen before save -->
+
+
+         <!-- START : If any exipred account selected, then show error-->
+         <template if:true={showExpiredAccError}>
+            <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container" style="width:auto">
+                    <div class="slds-modal__content slds-p-around_medium" style=" box-shadow:  -0em 0 2.8em black; border-radius: 10px;">
+                        <div class="slds-align_absolute-center slds-text-color_error slds-text-title_caps slds-text-title_bold">Error</div>
+                        <div class="slds-border_top slds-m-around_xx-small"></div>
+                        <p class="slds-text-align_center slds-p-around_medium">{label.labelExpiredAccError}</p>
+                        <div class="slds-align_absolute-center">
+                            <lightning-button variant="destructive" onclick={closeExipredAccError} label="Close"></lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            </section>
+        </template>
+        <!-- END : If any exipred account selected, then show error -->
+
+    </template>
+    <!-- END : model of the selection screen -->
+
+</template>

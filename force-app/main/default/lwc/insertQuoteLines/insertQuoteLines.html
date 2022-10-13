@@ -1,0 +1,8 @@
+<template>
+    <div class="slds-is-relative slds-align_absolute-center slds-m-around_x-small">
+        <lightning-button label="Update Purchase History" variant="Netural" onclick={handleClick}></lightning-button>
+        <template if:true={spinner}>
+            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+        </template>
+    </div>
+</template>

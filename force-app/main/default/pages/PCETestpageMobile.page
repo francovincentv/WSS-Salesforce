@@ -1,0 +1,305 @@
+<apex:page showHeader="false" sidebar="false" standardController="account" extensions="PCETestpageController" docType="html-5.0">
+<apex:stylesheet value="{!URLFOR($Resource.SLDS0121, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+
+<style type="text/css">
+	form {
+		height: 600px !important;
+		display: block !important;
+		overflow-y: scroll !important;
+	}
+	.vsize {
+		max-width: 200px;
+	}
+	rect {
+		display: block !important;
+	}
+	.slds-card__body {
+		padding-left: 1em !important;
+	}
+	.slds-button-group {
+		padding-top: 1em !important; 
+	}
+</style>
+<apex:form styleClass="slds-form--stacked">
+<div class="slds">
+<apex:messages />
+<div class="slds-card">
+<div class="slds-card__header">
+	<div class="slds-media__body">
+    	<h2 class="slds-text-heading--small slds-truncate">Configure Query</h2>
+    </div>
+</div>
+<div class="slds-card__body">
+	<!-- PORT SELECTOR -->
+	<div class="slds-form-element slds-is-required">
+		<apex:outputLabel styleClass="slds-form-element__label" value="Port" for="portselector"/>
+		<div class="slds-form-element__control">
+			<apex:selectList value="{!selPort}" size="1" id="portselector">
+				<apex:selectOptions value="{!portSelection}"/>
+			</apex:selectList>		
+		</div>
+	</div>
+
+	<div class="slds-form-element slds-is-required">
+		<apex:outputLabel styleClass="slds-form-element__label" value="Vessel size, lower limit" for="vessello"/>
+		<div class="slds-form-element__control">
+			<apex:input type="number" value="{!selVesselLo}" id="vessello" styleClass="slds-input vsize"/>
+		</div>
+	</div>
+
+	<div class="slds-form-element slds-is-required">
+		<apex:outputLabel styleClass="slds-form-element__label" value="Vessel size, upper limit" for="vesselhi"/>
+		<div class="slds-form-element__control">
+			<apex:input type="number" value="{!selVesselHi}" id="vesselhi" styleClass="slds-input vsize"/>
+		</div>
+	</div>
+
+	<div class="slds-form-element slds-is-required">
+		<apex:outputLabel styleClass="slds-form-element__label" value="Agent role" for="agentroleselector"/>
+		<div class="slds-form-element__control">
+			<apex:selectList value="{!selAgent}" size="1" id="agentroleselector">
+					<apex:selectOption itemValue="" itemLabel="---- Select Agent Role ----"/>
+					<apex:selectOption itemValue="Full Agent" itemLabel="Full Agent"/>
+					<apex:selectOption itemValue="Husbandry Agent" itemLabel="Husbandry Agent"/>
+					<apex:selectOption itemValue="Protective Agent" itemLabel="Protective Agent"/>
+			</apex:selectList>		
+		</div>
+	</div>
+
+	<!-- PORT SELECTOR -->
+	<div class="slds-form-element slds-is-required">
+		<apex:outputLabel styleClass="slds-form-element__label" value="Port" for="cargoselector"/>
+		<div class="slds-form-element__control">
+			<apex:selectList value="{!selCargotype}" size="1" id="cargoselector">
+				<apex:selectOptions value="{!cargoSelection}"/>
+			</apex:selectList>		
+		</div>
+	</div>
+
+	<div class="slds-form-element slds-is-required">
+		<apex:outputLabel styleClass="slds-form-element__label" value="Agent role" for="monthelector"/>
+		<div class="slds-form-element__control">
+			<apex:selectList value="{!selMonth}" size="1" id="monthselector">
+					<apex:selectOption itemValue="0" itemLabel="---- Select Month ----"/>
+					<apex:selectOption itemValue="1" itemLabel="January"/>
+					<apex:selectOption itemValue="2" itemLabel="February"/>
+					<apex:selectOption itemValue="3" itemLabel="March"/>
+					<apex:selectOption itemValue="4" itemLabel="April"/>
+					<apex:selectOption itemValue="5" itemLabel="May"/>
+					<apex:selectOption itemValue="6" itemLabel="June"/>
+					<apex:selectOption itemValue="7" itemLabel="July"/>
+					<apex:selectOption itemValue="8" itemLabel="August"/>
+					<apex:selectOption itemValue="9" itemLabel="September"/>
+					<apex:selectOption itemValue="10" itemLabel="October"/>
+					<apex:selectOption itemValue="11" itemLabel="November"/>
+					<apex:selectOption itemValue="12" itemLabel="December"/>
+			</apex:selectList>		
+		</div>
+	</div>
+
+	<div class="slds-button-group" role="group">
+		<apex:commandButton action="{!calcIt}" value="Calculate"/>
+	</div>	
+</div>
+</div>
+
+<apex:outputPanel id="daresults" layout="block" styleClass="slds-card" rendered="{!daSuccess}">
+<div class="slds-card__header">
+	<div class="slds-media__body">
+    	<h2 class="slds-text-heading--small slds-truncate">DA Results</h2>
+    </div>
+</div  >
+<div class="slds-card__body">
+	<apex:chart height="200" width="300" data="{!daChartData}">
+		<apex:axis type="Numeric" position="left" fields="count"/>
+		<apex:axis type="Numeric" position="bottom" fields="price"/>
+		<apex:barSeries orientation="vertical" axis="left" xField="price" yField="count"/>
+	</apex:chart>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Average DA amount (USD)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!daMean}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Standard deviation (USD)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!daDeviation}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Number of entries</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!daNoEntries}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">80 % of our entries are below (USD)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!daBelow80}</p>
+  </div>
+</div>
+</apex:outputPanel>
+
+
+<apex:outputPanel id="pcresults" layout="block" styleClass="slds-card" rendered="{!pcSuccess}">
+<div class="slds-card__header">
+	<div class="slds-media__body">
+    	<h2 class="slds-text-heading--small slds-truncate">Port Call Results</h2>
+    </div>
+</div  >
+<div class="slds-card__body">
+	<apex:chart height="200" width="300" data="{!pcChartData}">
+		<apex:axis type="Numeric" position="left" fields="count"/>
+		<apex:axis type="Numeric" position="bottom" fields="price"/>
+		<apex:barSeries orientation="vertical" axis="left" xField="price" yField="count"/>
+	</apex:chart>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Average laytime (days)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!pcMean}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Standard deviation (days)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!pcDeviation}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Number of entries</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!pcNoEntries}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">80 % of our entries are below (days)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!pcBelow80}</p>
+  </div>
+</div>
+</apex:outputPanel>
+
+<apex:outputPanel id="cgresults" layout="block" styleClass="slds-card" rendered="{!cgSuccess}">
+<div class="slds-card__header">
+	<div class="slds-media__body">
+    	<h2 class="slds-text-heading--small slds-truncate">Cargo Group Results</h2>
+    </div>
+</div  >
+<div class="slds-card__body">
+	<apex:chart height="200" width="300" data="{!cgChartData}">
+		<apex:axis type="Numeric" position="left" fields="count"/>
+		<apex:axis type="Numeric" position="bottom" fields="price"/>
+		<apex:barSeries orientation="vertical" axis="left" xField="price" yField="count"/>
+	</apex:chart>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Average cargo operation time (hours)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!cgMean}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Standard deviation (hours)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!cgDeviation}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">Number of entries</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!cgNoEntries}</p>
+  </div>
+</div>
+<div class="slds-tile">
+  <p class="slds-tile__title slds-truncate"><a href="#">80 % of our entries are below (hours)</a></p>
+  <div class="slds-tile__detail slds-text-body--small">
+    <p class="slds-truncate">{!cgBelow80}</p>
+  </div>
+</div>
+</apex:outputPanel>
+
+<!--
+	<apex:pageBlock title="Configure query">
+	</apex:pageBlock>
+	<apex:pageBlock title="Results" id="resultsection">
+		<apex:pageBlockButtons rendered="{!storeable}">
+			<apex:commandButton action="{!storeIt}" value="Store Result"/>
+		</apex:pageBlockButtons>
+		<apex:pageBlockSection title="DA Results" columns="1" collapsible="false" rendered="{!daSuccess}">
+			<apex:chart height="200" width="300" data="{!daChartData}">
+				<apex:axis type="Numeric" position="left" fields="count"/>
+				<apex:axis type="Numeric" position="bottom" fields="price"/>
+				<apex:barSeries orientation="vertical" axis="left" xField="price" yField="count"/>
+			</apex:chart>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Average DA amount (USD)" for="avgda"/>
+				<apex:outputText value="{!daMean}" id="avgda"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Standard deviation (USD)" for="devda"/>
+				<apex:outputText value="{!daDeviation}" id="devda"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Number of entries" for="noeda"/>
+				<apex:outputText value="{!daNoEntries}" id="noeda"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="80 % of our entries are below (USD)" for="eightyda"/>
+				<apex:outputText value="{!daBelow80}" id="eightyda"/>
+			</apex:pageBlockSectionItem>
+		</apex:pageBlockSection>
+		<apex:pageBlockSection title="Port Call Results" columns="1" collapsible="false" rendered="{!pcSuccess}">
+			<apex:chart height="200" width="300" data="{!pcChartData}">
+				<apex:axis type="Numeric" position="left" fields="count"/>
+				<apex:axis type="Numeric" position="bottom" fields="price"/>
+				<apex:barSeries orientation="vertical" axis="left" xField="price" yField="count"/>
+			</apex:chart>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Average laytime (days)" for="avgpc"/>
+				<apex:outputText value="{!pcMean}" id="avgpc"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Standard deviation (days)" for="devpc"/>
+				<apex:outputText value="{!pcDeviation}" id="devpc"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Number of entries" for="noepc"/>
+				<apex:outputText value="{!pcNoEntries}" id="noepc"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="80 % of our entries are below (days)" for="eightypc"/>
+				<apex:outputText value="{!pcBelow80}" id="eightypc"/>
+			</apex:pageBlockSectionItem>
+		</apex:pageBlockSection>
+		<apex:pageBlockSection title="Cargo Group Results" columns="1" collapsible="false" rendered="{!cgSuccess}">
+			<apex:chart height="200" width="300" data="{!cgChartData}">
+				<apex:axis type="Numeric" position="left" fields="count"/>
+				<apex:axis type="Numeric" position="bottom" fields="price"/>
+				<apex:barSeries orientation="vertical" axis="left" xField="price" yField="count"/>
+			</apex:chart>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Average cargo operation time (hours)" for="avgcg"/>
+				<apex:outputText value="{!cgMean}" id="avgcg"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Standard deviation (hours)" for="devcg"/>
+				<apex:outputText value="{!cgDeviation}" id="devcg"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="Number of entries" for="noecg"/>
+				<apex:outputText value="{!cgNoEntries}" id="noecg"/>
+			</apex:pageBlockSectionItem>
+			<apex:pageBlockSectionItem >
+				<apex:outputLabel value="80 % of our entries are below (hours)" for="eightycg"/>
+				<apex:outputText value="{!cgBelow80}" id="eightycg"/>
+			</apex:pageBlockSectionItem>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+-->
+
+</div>
+</apex:form>
+</apex:page>

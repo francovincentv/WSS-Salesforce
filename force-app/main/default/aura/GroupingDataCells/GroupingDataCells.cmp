@@ -1,0 +1,48 @@
+<aura:component >
+    <aura:attribute name="groupingKey" type="String" description="key so we know which data to access from factMap"/>
+    <aura:attribute name="factMap" type="Object" description="all data keyed to groupings so we can pull the correct data"/>
+    <aura:attribute name="groupingMap" type="Object" description="Hash map of grouping Id and data size"/>
+    <aura:attribute name="dataRows" type="Object[]" description="rows of data from report"/>
+    <aura:attribute name="allowEdit" type="Boolean" description="Shows Edit icon on lookups" default="true"/>
+    <aura:attribute name="linkColumn" type="Integer" description="Column number to make link to record using label View Record, must be a lookup field. First column is 0"/>
+    <aura:attribute name="selectedRow" type="Integer" description="Column number that was last clicked"/>
+    <aura:attribute name="isConsole" type="Boolean" description="Checked when running inside a console App" default="false"/>
+
+    <aura:handler name="init" value="{!this}" action="c.doInit"/>
+    <aura:handler name="change" action="c.doInit" value="{!v.factMap}"/>
+    <aura:handler event="c:GroupingDataRowClickedEvent" action="{!c.handleRowClickEvent}"/>
+    <aura:handler event="c:ReportContainerKeyPressedEvent" action="{!c.shiftRowSelection}"/>
+    
+    <aura:registerEvent name="rowClickedEvent" type="c:GroupingDataRowClickedEvent"/>
+    
+    <!-- allows detecting if running within console -->
+    <lightning:workspaceAPI aura:id="workspace" />
+    
+    <!-- gives us access to edit modal and navigation events -->
+    <aura:dependency resource="markup://force:editRecord" type="EVENT" />
+    <aura:dependency resource="markup://force:navigateToURL" type="EVENT" />
+
+    <aura:iteration items="{!v.dataRows}" var="aRow" indexVar="i">
+        <tr aura:id="data-row" class="{!(aRow.selected?'row-selected':'')}" onclick="{!c.rowClicked}" data-index="{!i}">
+            <aura:iteration items="{!aRow.dataCells}" var="aCell" indexVar="j">
+                <td class="data-cell">
+                    <!-- quick way to check if this is a lookup field so we can handle differently with view and edit access-->
+                    <aura:if isTrue="{! (aCell.value != aCell.label) &amp;&amp; (aCell.value.length == 15 || aCell.value.length == 18)}">
+                        <lightning:icon iconName="utility:new_window" size="xx-small" class="slds-icon-text-light slds-m-right_x-small" alternativeText="Open record in new window"/>
+                        <a href="{!if(v.isConsole,'javascript:void(0);','/lightning/r/SObject/'+aCell.value+'/view')}" 
+                           onclick="{!c.viewRecord}" data-recordid="{!aCell.value}" target="_blank"
+                           title="Open record in new window">{!if(j==v.linkColumn,'View record',aCell.label)}</a>&nbsp;
+                        <aura:if isTrue="{! allowEdit }">
+                        <a href="javascript:void(0);" onclick="{!c.editRecord}" data-recordid="{!aCell.value}">
+                            <lightning:icon iconName="utility:edit" size="x-small" class="slids-icon-text-error" alternativeText="Edit"/>
+                        </a>
+                        </aura:if>
+                        <aura:set attribute="else">
+                            <div class="{!if(aCell.label.length > 50,'long-text-cell','')}"><lightning:formattedText linkify="true" value="{!aCell.label}"/></div>
+                        </aura:set>
+                    </aura:if> 
+                </td>
+            </aura:iteration>
+        </tr>
+    </aura:iteration>
+</aura:component>

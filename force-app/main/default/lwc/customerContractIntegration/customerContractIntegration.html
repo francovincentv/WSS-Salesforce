@@ -1,0 +1,8 @@
+<template>
+    <div class="slds-p-around_x-small slds-align_absolute-center" style="background-color: white; border-radius: 4px;">
+        <lightning-button variant="Neutral" label="Send Contract Info" onclick={handleClick}></lightning-button>
+    </div>
+    <template if:true={spinner}>
+        <lightning-spinner size="small" alternative-text="loading"></lightning-spinner>
+    </template>
+</template>

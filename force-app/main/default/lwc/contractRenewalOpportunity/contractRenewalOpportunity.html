@@ -1,0 +1,24 @@
+<template>
+    <div class="slds-align_absolute-center slds-theme_default">
+            <template if:false={showError}>
+                <p class="slds-text-title">Loading...</p>
+            </template>
+        <!--loading spinner start... style=Brand large (blue dots)-->
+        <div if:true={spinner}>
+            <lightning-spinner variant="brand" 
+                                alternative-text="Loading" 
+                                size="large"
+                                style="background-color: transparent">
+            </lightning-spinner>
+        </div>
+        <!-- Loading spinner end-->
+
+        <!-- START : Error screen -->
+        <template if:true={showError}>
+            <c-error-panel errors={error}></c-error-panel>
+        </template>
+        <!-- END : Error screen -->
+
+    </div>
+
+</template>

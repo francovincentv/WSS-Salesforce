@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="Fired by the Report Container when UP or DOWN arrow keys are pressed.">
+    <aura:attribute name="key" type="String"/>
+</aura:event>

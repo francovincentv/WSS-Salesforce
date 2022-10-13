@@ -1,0 +1,205 @@
+<!--
+ - Created by Andrej Tazky on 01-Dec-21.
+ -->
+
+<!-- Order Exceptions -->
+<template>
+    <article class="slds-card">
+        <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <lightning-icon icon-name="standard:process_exception" alternative-text="Order Exceptions"
+                                    title="Order Exceptions" size="small"></lightning-icon>
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title">
+                        <b><span>Starlist Process Exceptions ({expCount})</span></b>
+                    </h2>
+                </div>
+                <div class="slds-no-flex">
+                    <button class="slds-button slds-button_neutral" onclick={openModal} disabled={disableShow} >Show</button>
+                </div>
+            </header>
+        </div>
+    </article>
+    <template if:true={isModalOpen}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01"
+                 aria-modal="true" aria-describedby="modal-content-id-1"
+                 class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button
+                            class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close">
+                        <svg class="slds-button__icon slds-button__icon_medium"
+                             aria-hidden="true">
+                            <use
+                                    xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#close">
+                            </use>
+                        </svg>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+<!--                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Order Exceptions</h2>-->
+                </header>
+                <div class="slds-modal__content slds-p-horizontal_medium slds-p-bottom_medium slds-p-top_x-small"
+                     id="modal-content-id-1">
+                    <div class="spinner">
+                        <template if:true={showSpinner}>
+                            <lightning-spinner alternative-text="Adding..." variant="brand" size="large">
+                            </lightning-spinner>
+                        </template>
+                    </div>
+                    <template if:true={inputData}>
+
+
+                        <!--Subscription table-->
+                        <div style="height: 200px;">
+                            <lightning-datatable
+                                    key-field="id"
+                                    data={data}
+                                    columns={columns}
+                                    hide-checkbox-column="true"
+                                    min-column-width="100">
+                            </lightning-datatable>
+                        </div>
+<!--                        <div-->
+<!--                                class="table-grid slds-grid slds-wrap slds-form slds-form_stacked">-->
+<!--                            <div class="slds-col slds-size_3-of-12">-->
+<!--                                <span class="slds-p-left_small">Exception</span>-->
+<!--                            </div>-->
+<!--                            <div class="slds-col slds-size_2-of-12 slds-clearfix">-->
+<!--                                <span class="slds-float_right">Type</span>-->
+<!--                            </div>-->
+<!--                            <div class="slds-col slds-size_3-of-12 slds-clearfix">-->
+<!--                                <span class="slds-float_right">Details</span>-->
+<!--                            </div>-->
+
+<!--                        </div>-->
+
+<!--                        <template for:each={exceptions} for:item="exception">-->
+<!--                            <div key={exception} class="exception-grid slds-grid slds-wrap slds-form slds-form_stacked slds-grid_vertical-align-center ">-->
+<!--                                <div class="slds-col slds-var-p-vertical_xx-small slds-p-left_x-small slds-size_3-of-12">-->
+<!--                                    <span>{exception.Name}</span>-->
+<!--                                </div>-->
+<!--                                <div class="slds-col slds-var-p-vertical_xx-small slds-p-left_small slds-size_2-of-12 slds-clearfix">-->
+<!--                                    <span class="slds-float_right">{exception.Exception__r.Name}</span>-->
+<!--                                </div>-->
+<!--                                <div class="slds-col slds-var-p-vertical_xx-small slds-p-left_small slds-size_3-of-12 slds-clearfix">-->
+<!--                                    <span class="slds-float_right"></span>-->
+<!--                                </div>-->
+<!--                            </div>-->
+
+<!--                        </template>-->
+
+<!--                        <div class="slds-p-top_medium slds-p-bottom_xx-small slds-p-left_xx-small">-->
+<!--                            <div class="slds-text-heading_medium">Case data:</div>-->
+<!--                        </div>-->
+
+<!--                        <template for:each={inputData.accounts} for:item="acc">-->
+
+<!--                            <div key={acc.id}-->
+<!--                                class="slds-grid /*slds-grid_pull-padded-x-small slds-grid_vertical-align-end*/ ">-->
+
+<!--                                <div-->
+<!--                                class="slds-col slds-size_4-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                <lightning-input type="text" label="Account" value={acc.name} disabled></lightning-input>-->
+<!--                            </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Roles" value={acc.roles} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Objects" value={acc.objs} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Country of customer" value={acc.country} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Segment" value={acc.segment} disabled></lightning-input>-->
+<!--                                </div>-->
+
+
+<!--&lt;!&ndash;                                <div&ndash;&gt;-->
+<!--&lt;!&ndash;                                    class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <lightning-input type="text" label="Products" value={acc.products} disabled></lightning-input>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <div&ndash;&gt;-->
+<!--&lt;!&ndash;                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <lightning-input type="text" label="Product category" value={acc.productCategories} disabled></lightning-input>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+
+<!--                            </div>-->
+
+<!--                            <div key={acc.id}-->
+<!--                                 class="slds-grid /*slds-grid_pull-padded-x-small slds-grid_vertical-align-end*/ slds-p-bottom_small">-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Order Value" value={acc.orderValues} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Vessels" value={acc.vesselCodes} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Vessel flag" value={acc.vesselFlags} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Vessel type" value={acc.vesselTypes} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Ports" value={acc.portsCodes} disabled></lightning-input>-->
+<!--                                </div>-->
+
+<!--                                <div-->
+<!--                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">-->
+<!--                                    <lightning-input type="text" label="Country of delivery" value={acc.portsCountries} disabled></lightning-input>-->
+<!--                                </div>-->
+
+
+<!--                            </div>-->
+
+<!--&lt;!&ndash;                            <div key={acc.id}&ndash;&gt;-->
+<!--&lt;!&ndash;                                 class="slds-grid /*slds-grid_pull-padded-x-small slds-grid_vertical-align-end*/ slds-p-bottom_large">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                <div&ndash;&gt;-->
+<!--&lt;!&ndash;                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">&ndash;&gt;-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                <div&ndash;&gt;-->
+<!--&lt;!&ndash;                                        class="slds-col slds-size_2-of-12 slds-p-horizontal_x-small /*slds-p-around_medium*/">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <lightning-input type="text" label="Order Value" value={acc.orderValues} disabled></lightning-input>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                            </div>&ndash;&gt;-->
+
+<!--                        </template>-->
+
+
+
+                    </template>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral"
+                            onclick={closeModal}>Close</button>
+
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

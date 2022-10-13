@@ -1,0 +1,194 @@
+<aura:component controller="KeyPortSelectionCtrl" implements="lightning:availableForFlowScreens,force:lightningQuickAction,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes">
+    <aura:attribute name="ctrl" type="Object" default="[]" access="GLOBAL"/>
+    <aura:attribute name="keyPortRows" type="Object[]" default="[]" access="GLOBAL"/><!--here length -->
+    <aura:attribute name="response" type="Object" access="GLOBAL"/>
+    <aura:attribute name="recordId" type="Id" access="GLOBAL"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="arrowDirection" type="string" default="arrowup" description="Use for change arrow sign direction on header based on click"/>
+    <aura:attribute name="isAsc" type="boolean" default="true" description="boolean flag for pass sorting condition to apex class"/> 
+    <aura:attribute name="selectedTabsoft" type="string" default="port__r.name" description="Use for show/hide arraow sign on header based on conditions"/>
+    <aura:attribute name="searchName" type="string"/>
+    <aura:attribute name="searchCode" type="string"/>
+    <aura:attribute name="searchLocation" type="string"/>
+    
+    
+    
+    
+    <aura:attribute name="currentData" type="Object"  access="GLOBAL"/>
+    
+    
+    <aura:handler name="change" value="{!v.searchName}" action="{!c.search}"/>
+    <aura:handler name="change" value="{!v.searchCode}" action="{!c.search}"/>
+    <aura:handler name="change" value="{!v.searchLocation}" action="{!c.search}"/>
+    
+    <aura:attribute name="typingTimer" type="Object" />
+    
+    <aura:attribute name="currentPageNumber" type="Integer" required="true" default="1" />
+    <aura:attribute name="maxPageNumber" type="Integer" required="true" default="1"/>
+    <aura:attribute type="Integer" name="pageNumber" default="1" access="GLOBAL" />
+    <aura:handler name="change"	value="{!v.currentPageNumber}"	action="{!c.renderPage}" />
+    
+    <div class="slds" aura:id="spinner">
+        <br/><br/><br/>
+        <lightning:spinner variant="brand" alternativeText="Loading Info"/>
+    </div>
+    <div style="background-color:white" class="slds slds-p-top_medium" aura:id="mainApp">
+        <!--ERROR MESSAGE-->   
+        <aura:renderIf isTrue="{!v.ctrl.success=='false'}" >
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning" role="alert">
+                <span class="slds-icon_container slds-icon-utility-user slds-m-right_x-small" title="Description of icon when needed">
+                    <lightning:icon iconName="utility:error" variant="error" size="small"/>
+                </span>
+                <h2><b> There was a problem while loading your data: </b></h2>
+            </div>
+            <br/><br/>
+            <h2><b>Error message:</b></h2>
+            <h2><b>{!v.ctrl.errormessage}</b></h2>
+            <br/>
+            <h2><b>Error code: {!v.ctrl.errorcode}</b></h2>
+            <br/>
+        </aura:renderIf>        
+        <!--END ERROR-->
+        
+        <div class="slds-list_horizontal slds-m-right--large"> 
+            <div class="slds-col--padded slds-small-size--1-of-4">
+                <th class= "slds-size_1-of-2  slds-input-has-icon slds-input-has-icon_left-right">   
+                    
+                    <div class="slds-input__icon slds-input__icon_left" aria-hidden="true"> 
+                        <lightning:icon iconName="utility:search" size="x-small" />
+                    </div> 
+                    <div > 
+                        <ui:inputText class="slds-text-align--center" placeholder="Name" value="{!v.searchName}" updateOn="keyUp" />
+                    </div>
+                    <div class="slds-input__icon slds-input__icon_right" onclick="{!c.clearSearchByName}"> 
+                        <lightning:icon iconName="utility:clear" size="x-small" />
+                    </div>  
+                </th>
+            </div>
+            
+            <div class="slds-col--padded  slds-small-size--1-of-4">
+                <th class= "slds-size_1-of-2  slds-input-has-icon slds-input-has-icon_left-right">   
+                    
+                    <div class="slds-input__icon slds-input__icon_left" aria-hidden="true"> 
+                        <lightning:icon iconName="utility:search" size="x-small" />
+                    </div> 
+                    <div > 
+                        <ui:inputText class="slds-text-align--center" placeholder="Code" value="{!v.searchCode}" updateOn="keyUp" />
+                    </div>
+                    <div class="slds-input__icon slds-input__icon_right" onclick="{!c.clearSearchByCode}"> 
+                        <lightning:icon iconName="utility:clear" size="x-small" />
+                    </div>  
+                </th>
+                
+            </div> 
+            <div class="slds-col--padded slds-small-size--1-of-4">
+                <th class= "slds-size_1-of-2  slds-input-has-icon slds-input-has-icon_left-right" scope="col">   
+                    
+                    <div class="slds-input__icon slds-input__icon_left" aria-hidden="true"> 
+                        <lightning:icon iconName="utility:search" size="x-small" />
+                    </div> 
+                    <div > 
+                        <ui:inputText class="slds-text-align--center" placeholder="Location" value="{!v.searchLocation}" updateOn="keyUp" />
+                    </div>
+                    <div class="slds-input__icon slds-input__icon_right" onclick="{!c.clearSearchByLocation}"> 
+                        <lightning:icon iconName="utility:clear" size="x-small" />
+                    </div>  
+                </th>
+            </div> 
+            
+            
+            
+            <lightning:button aura:id="savecheckedPort"   variant="neutral"  label="Save" onclick="{!c.save}"/>		
+            <lightning:button aura:id="backToQuote"   variant="neutral"  label="Close" onclick="{!c.close}"/>		
+            
+        </div>
+        
+        
+        <div aura:id="resultID" class="slds-m-top--xx-small"> <!--<div aura:id="resultID" class="slds slds-hide">-->
+            <div>
+                <table aura:id="tableID" class="slds-table slds-table_bordered slds-table_resizable-cols  slds-table--fixed-layout">
+                    <thead>
+                        <tr class="slds-text-title--caps">
+                            
+                            <th class="slds-size--1-of-6 slds-is-resizable"> 
+                                <div class="slds-p-left_xx-large ">Select</div>
+                            </th> 
+                            <th  class="slds-is-sortable  slds-is-resizable" scope="col" onclick="{!c.sortByName}">
+                                <a href="javascript:void(0);" class="slds-th__action slds-text-link--reset">
+                                    <span class="slds-assistive-text">Sort</span>
+                                    <span  class="slds-grid slds-grid_align-spread" title="Port Name">PORT NAME</span>
+                                    
+                                    <aura:if isTrue="{! and(v.arrowDirection == 'arrowdown', v.selectedTabsoft == 'Name') }">&nbsp;  &#9660; </aura:if>  
+                                    <aura:if isTrue="{! and(v.arrowDirection != 'arrowdown', v.selectedTabsoft == 'Name') }">&nbsp;  &#9650; </aura:if>             
+                                </a>
+                            </th>   
+                            <th  class="slds-is-sortable  slds-is-resizable " scope="col" onclick="{!c.sortByCode}">
+                                <a href="javascript:void(0);" class="slds-th__action slds-text-link--reset">
+                                    <span class="slds-assistive-text">Sort</span>
+                                    <span  class="slds-grid slds-grid_align-spread" title="Port Code">PORT CODE</span>
+                                    
+                                    <aura:if isTrue="{! and(v.arrowDirection == 'arrowdown', v.selectedTabsoft == 'Code') }">&nbsp;  &#9660; </aura:if>  
+                                    <aura:if isTrue="{! and(v.arrowDirection != 'arrowdown', v.selectedTabsoft == 'Code') }">&nbsp;  &#9650; </aura:if>             
+                                </a>
+                            </th>  
+                            <th  class="slds-is-sortable slds-size--1-of-7 slds-is-resizable" scope="col" onclick="{!c.sortByLocation}">
+                                <a href="javascript:void(0);" class="slds-th__action slds-text-link--reset">
+                                    <span class="slds-assistive-text">Sort</span>
+                                    <span  class="slds-grid slds-grid_align-spread" title="Location">LOCATION</span>
+                                    
+                                    <aura:if isTrue="{! and(v.arrowDirection == 'arrowdown', v.selectedTabsoft == 'Location') }">&nbsp;  &#9660; </aura:if>  
+                                    <aura:if isTrue="{! and(v.arrowDirection != 'arrowdown', v.selectedTabsoft == 'Location') }">&nbsp;  &#9650; </aura:if>             
+                                </a>
+                            </th> 
+                            
+                        </tr>
+                    </thead>
+                    <!--TABLE BODY (ROWS)-->
+                    <tbody>
+                        <aura:iteration items="{!v.currentData}" var="item" indexVar="idx" >
+                            <tr class="slds-is-resizable slds-text-title_caps">
+                                <td data-label="CheckBox">
+                                    <div class="slds-list_horizontal slds-truncate">                                  
+                                        
+                                        <div class="slds-p-left_xx-large" title="{!item.Selected}" >
+                                            <ui:inputCheckbox aura:id="boxPack" value="{!item.Selected}"/> 
+                                        </div>
+                                    </div>
+                                    
+                                </td>
+                                <td data-label="PortName">
+                                    <div aura:id="portname" class="slds-truncate"  title="{!item.KeyPort.Name}">
+                                        <p><a data-record="{!idx}" onclick="{!c.handleClick}">{!item.KeyPort.Name}</a></p>
+                                        <!--<ui:outputURL value="{!'/one/one.app#/sObject/' + item.KeyPort.Port__r.Id +'/view'}" label="{!item.Port__r.Name}" target="_blank"/>-->
+                                    </div>
+                                </td>
+                                <td data-label="PortCode">
+                                    <div class="slds-truncate" title="{!item.KeyPort.Port_Code__c}">
+                                        {!item.KeyPort.Port_Code__c}		
+                                    </div>
+                                </td>
+                                <td data-label="PortLocation">
+                                    <div class="slds-truncate" title="{!item.KeyPort.LocationName__c}">
+                                        {!item.KeyPort.LocationName__c}
+                                    </div>
+                                </td>
+                            </tr>
+                        </aura:iteration>
+                    </tbody>
+                </table>
+                <div class="slds-align_absolute-center slds slds-p-bottom_medium">  
+                    <div class="slds-align_absolute-center">
+                        <lightning:button aura:id="firstPage"  variant="neutral" label="First Page" onclick="{!c.firstPage}" disabled="{!v.currentPageNumber == 1}"/>
+                        <lightning:button aura:id="nextPage"  variant="neutral"  label="Previous Page" onclick="{!c.previousPage}" disabled="{!v.currentPageNumber == 1}"/>
+                        <lightning:button aura:id="previousPage"  variant="neutral"  label="Next Page" onclick="{!c.nextPage}"  disabled="{!v.currentPageNumber == v.maxPageNumber}"/>
+                        <lightning:button aura:id="lastPage"  variant="neutral"  label="Last Page" onclick="{!c.lastPage}" disabled="{!v.currentPageNumber == v.maxPageNumber}"  />  
+                        
+                    </div>
+                    <div class="slds-align_absolute-right">
+                        Page&nbsp;{!v.currentPageNumber} / {!v.maxPageNumber} &nbsp;
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+</aura:component>

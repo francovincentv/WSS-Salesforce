@@ -1,0 +1,21 @@
+<apex:component controller="ScmRelatedInfo" access="global">
+    <apex:attribute access="global" name="scmImpName" type="String" description="Name of the SCM" assignTo="{!scmName}"/>
+    <table border = "1" cellspacing = "2">
+    	<tr>
+            <td>Product Number</td>
+            <td>Product Description</td>
+            <td>Site</td>
+            <td>Site Description</td>
+            <td>Initial Stock Qty at Launch</td>
+        </tr>
+        <apex:repeat value="{!prodSites}" var="ps">
+        <tr>
+            <td>{!ps.Product_Number__c}</td>
+            <td>{!ps.Product__r.Name}</td>
+            <td>{!ps.Site_Name__r.Name}</td>
+            <td>{!ps.Site_Abbreviation__c}</td>
+            <td>{!ps.Initial_stock_qty_at_launch__c}</td>
+        </tr>
+        </apex:repeat>
+	</table>
+</apex:component>

@@ -1,0 +1,18 @@
+<template>
+         <!-- START : Error screen -->
+         <template if:true={showError}>
+                <c-error-panel errors={error}></c-error-panel>
+        </template>
+        <!-- END : Error screen -->
+
+        <!-- START: Show the heirarchy tree grid -->
+        <template if:true={gridData}>
+                <lightning-tree-grid columns={gridColumns} 
+                                data={gridData} 
+                                key-field="id"
+                                onrowselection={handleRowSelection} 
+                                selected-rows={selectedRows}></lightning-tree-grid>
+        </template>
+        <!-- END: Show the heirarchy tree grid -->
+
+</template>

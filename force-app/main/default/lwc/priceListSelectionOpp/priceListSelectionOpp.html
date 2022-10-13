@@ -1,0 +1,66 @@
+<template>
+    <lightning-card >
+        <div class="slds-is-relative slds-align_absolute-center slds-p-bottom_x-small">
+            <lightning-button label="Update Current Price List" variant="Netural" onclick={handleClick}></lightning-button>
+            <template if:true={spinner}>
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </template>
+        </div>
+    </lightning-card>
+    <template if:true={showModal}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close" onclick={closePopup}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" size="small">
+                        </lightning-icon>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Price List Version Selection</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_x-large" id="modal-content-id-1" style="height: 20em;"> 
+
+                    <!-- START : Error screen -->
+                    <template if:true={error}>
+                        <c-error-panel errors={error}></c-error-panel>
+                    </template>
+                    <!-- END : Error screen -->
+
+                    <!-- START: Select list -->
+                    <template if:false={error}>
+                        <lightning-combobox
+                            name="progress"
+                            label="Please select a pircelist verision"
+                            value={selectedPrice}
+                            placeholder="Select Progress"
+                            options={activePrices}
+                            onchange={handleChange} ></lightning-combobox>
+                    </template>
+                    <!-- END: Select list -->
+
+                    <template if:true={spinner}>
+                        <!--loading spinner start... style=Brand Medium (blue dots)-->
+                        <div if:true={spinner}>
+                            <div id="spinnerId" class="slds-spinner_container" style="background-color: transparent">
+                                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative"
+                                    role="alert">
+                                    <span class="slds-assistive-text">Loading</span>
+                                    <div class="slds-spinner__dot-a"></div>
+                                    <div class="slds-spinner__dot-b"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Loading spinner end-->
+                    </template>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closePopup}>Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick={handleSave}>Save & Close</button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+</template>

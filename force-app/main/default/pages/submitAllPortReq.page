@@ -1,0 +1,3 @@
+<apex:page standardController="case" extensions="submitAllPortReqExt" action="{!submitPR}">
+    
+</apex:page>

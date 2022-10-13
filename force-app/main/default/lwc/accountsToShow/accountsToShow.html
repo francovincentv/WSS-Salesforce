@@ -1,0 +1,95 @@
+<template>
+    <template if:true={accountToShowCondition}>
+    <div class="slds-scrollable slds-grow">
+        <div class="slds-scrollable_none">
+            <table aria-multiselectable="true"
+                class="slds-table slds-no-row-hover slds-table_bordered slds-table_fixed-layout slds-table_resizable-cols"
+                role="grid">
+                <thead>
+                    <tr class="slds-line-height_reset slds-m-around_small">
+                        <th class="" scope="col" style="width:3.75rem">
+                            <template if:true={showMutliselectIcon}>
+                            <lightning-button-icon icon-name={selectAllIcon}
+                                alternative-text="Select All"
+                                class="slds-m-left_medium slds-p-left_xx-small"
+                                title="Select All"
+                                onclick={handleSelectAll}></lightning-button-icon>
+                            </template>
+                        </th>
+                        <th aria-label="Name" aria-sort="none" scope="col" class="slds-size_5-of-12">
+                            <a class="slds-th__action slds-text-link_reset" href="javascript:void(0);" role="button"
+                                tabindex="-1">
+                                <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+                                    <span class="slds-truncate" title="Name"> Account
+                                        Name</span>
+                                </div>
+                            </a>
+                        </th>
+                        <th aria-sort="none" class="slds-size_2-of-12"
+                            scope="col">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate">
+                                <span class="slds-truncate" title="Account Number">Account Number</span>
+                            </div>
+                        </th>
+                        <th aria-sort="none" class="slds-size_2-of-12"
+                            scope="col">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-align_absolute-center">
+                                <span class="slds-truncate" title="Account Currecy">Currency</span>
+                            </div>
+                        </th>
+                        <th aria-sort="none" class="slds-size_2-of-12"
+                            scope="col">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-align_absolute-center">
+                                <span class="slds-truncate" title="Product Code">Information</span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={accountToShow} for:item="curAcc">
+                        <tr aria-selected="false" class="slds-hint-parent" key={curAcc.Id}>
+                            <td class="slds-text-align_right" role="gridcell" tabindex="0">
+                                <lightning-button-icon icon-name={icon}  
+                                                variant="container"  
+                                                alternative-text={title}  
+                                                class="slds-m-left_xx-small" 
+                                                title={title}
+                                                value={curAcc.Id}
+                                                onclick={handleSelect}></lightning-button-icon>
+                            </td>
+                            <td>
+                                <div class="slds-truncate" title="Name">
+                                    {curAcc.Name}</div>
+                            </td>
+                            <td>
+                                <div class="slds-truncate" title="Account Number">
+                                    {curAcc.Account_Number__c}</div>
+                            </td>
+                            <td>
+                                <div class="slds-truncate slds-align_absolute-center" title="Currency ">
+                                    {curAcc.CurrencyIsoCode}</div>
+                            </td>
+                            <td role="gridcell">
+                                <template if:true={curAcc.exist}>
+                                    <div class="slds-grid slds-gutters slds-align_absolute-center">
+                                        <div class="slds-truncate slds-m-around_x-small">
+                                            <lightning-helptext icon-variant="warning" icon-name="utility:warning" content="This sub-account is already a contract party in another active Contract"></lightning-helptext>
+                                        </div>
+                                    </div>
+                                </template>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </template>
+    <template if:false={accountToShowCondition}>
+            <div class="slds-text-align_center slds-m-around_large">
+                <lightning-icon icon-name="utility:info_alt" size="small"
+                                alternative-text="info" title="info"></lightning-icon>
+                <div class="slds-text-title">{noDataMessage}</div>
+            </div>
+    </template>
+</template>

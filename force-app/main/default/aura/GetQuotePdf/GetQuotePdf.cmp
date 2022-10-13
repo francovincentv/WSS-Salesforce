@@ -1,0 +1,14 @@
+<aura:component implements="force:hasRecordId,flexipage:availableForRecordHome" controller="QuotePdfRestAPI">
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="loading" type="Boolean" default="false" />
+
+     <div class="slds-p-around_x-small slds-align_absolute-center" style="background-color: white; border-radius:4px">
+        <lightning:button label="Customer Preview" title="Customer Preview" onclick="{! c.handleClick }" disabled="{!v.loading}"/>
+        <div class="spinnerHolder">
+            <aura:if isTrue="{! v.loading }">
+                <lightning:spinner alternativeText="Loading" size="small"/>
+            </aura:if>
+        </div>
+     </div>
+  
+</aura:component>
